@@ -155,3 +155,48 @@ resetBtn.addEventListener('click', resetAll);
 
 // add one semester by default
 addSemester();
+
+// --- KSRCEResults integration ---
+const fetchResultBtn = document.getElementById('fetchResultBtn');
+const regInput = document.getElementById('regInput');
+const resultFrame = document.getElementById('resultFrame');
+const openExternalBtn = document.getElementById('openExternalBtn');
+
+fetchResultBtn.addEventListener('click', async () => {
+  const reg = (regInput.value || '').trim();
+  if (!reg) {
+    alert('Please enter a Register Number');
+    return;
+  }
+
+  fetchResultBtn.disabled = true;
+  fetchResultBtn.textContent = 'Fetching...';
+
+  try {
+    const res = await fetch(`/api/results?reg=${encodeURIComponent(reg)}`);
+    if (!res.ok) throw new Error('Network response not ok');
+    const data = await res.json();
+    if (!data || !data.html) {
+      alert('No result returned from server');
+      return;
+    }
+
+    // Show returned HTML in iframe using srcdoc
+    resultFrame.style.display = 'block';
+    resultFrame.srcdoc = data.html;
+  } catch (err) {
+    console.error(err);
+    alert('Failed to fetch result. Open on KSRCEResults instead.');
+  } finally {
+    fetchResultBtn.disabled = false;
+    fetchResultBtn.textContent = 'Fetch Result';
+  }
+});
+
+openExternalBtn.addEventListener('click', () => {
+  const reg = (regInput.value || '').trim();
+  if (!reg) return alert('Please enter a Register Number');
+  // Fallback: open the external site with the register number appended as a query parameter
+  const url = `https://www.ksrceresults.com/?reg=${encodeURIComponent(reg)}`;
+  window.open(url, '_blank');
+});
