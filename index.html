@@ -8,11 +8,26 @@
 </head>
 <body>
   <header>
-    <h1>Welcome</h1>
-    <p class="lead">This is a simple white home page.</p>
+    <h1>Student CGPA Calculator</h1>
+    <p class="lead">Calculate SGPA per semester and cumulative CGPA for engineering students.</p>
   </header>
   <main>
-    <p>Use this as the starting point for your site.</p>
+    <section id="calculator" class="card">
+      <div class="controls">
+        <button id="addSemesterBtn" class="btn">Add Semester</button>
+        <button id="calculateBtn" class="btn primary">Calculate CGPA</button>
+        <button id="resetBtn" class="btn">Reset</button>
+      </div>
+
+      <div id="semesters" class="semesters">
+        <!-- Semesters will be added here -->
+      </div>
+
+      <div id="results" class="results" aria-live="polite">
+        <p>No calculations yet.</p>
+      </div>
+    </section>
   </main>
+  <script src="script.js"></script>
 </body>
 </html>
