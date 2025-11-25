@@ -420,6 +420,140 @@ function parseResultText(text) {
   return uniqueCourses;
 }
 
+// Capture screenshot of the iframe
+async function captureScreenshot() {
+  const iframe = document.getElementById('resultsFrame');
+  const statusDiv = document.getElementById('uploadStatus');
+  
+  if (!iframe.src || iframe.src === 'about:blank') {
+    alert('Please load your results in the portal first by entering your Register Number above.');
+    return;
+  }
+
+  statusDiv.className = 'upload-status processing';
+  statusDiv.textContent = '📸 Capturing screenshot...';
+
+  try {
+    // Try to access iframe content directly first
+    let iframeDoc;
+    try {
+      iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      
+      if (iframeDoc && iframeDoc.body) {
+        // Convert iframe HTML to canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        canvas.width = iframe.offsetWidth || 800;
+        canvas.height = iframe.offsetHeight || 600;
+        
+        // Create image from iframe content
+        const data = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '">' +
+                     '<foreignObject width="100%" height="100%">' +
+                     '<div xmlns="http://www.w3.org/1999/xhtml">' +
+                     iframeDoc.body.innerHTML +
+                     '</div>' +
+                     '</foreignObject>' +
+                     '</svg>';
+        
+        const img = new Image();
+        const blob = new Blob([data], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        
+        img.onload = async function() {
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          
+          // Convert canvas to blob and process with OCR
+          canvas.toBlob(async function(blob) {
+            await processImageBlob(blob, statusDiv);
+          });
+        };
+        
+        img.onerror = function() {
+          statusDiv.className = 'upload-status error';
+          statusDiv.textContent = '❌ Failed to capture. Please upload a screenshot manually instead.';
+        };
+        
+        img.src = url;
+        return;
+      }
+    } catch (e) {
+      console.log('Direct iframe access blocked:', e);
+    }
+
+    // If direct access fails, ask user to upload screenshot
+    statusDiv.className = 'upload-status error';
+    statusDiv.innerHTML = '❌ Cannot capture due to security restrictions.<br>Please use the "Upload Result Screenshot" option below instead.';
+    
+    // Scroll to upload section
+    setTimeout(() => {
+      document.querySelector('.upload-section').scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 1000);
+
+  } catch (error) {
+    console.error('Screenshot capture error:', error);
+    statusDiv.className = 'upload-status error';
+    statusDiv.innerHTML = '❌ Screenshot capture failed.<br>Please use "Upload Result Screenshot" option below.';
+  }
+}
+
+// Process image blob with OCR
+async function processImageBlob(blob, statusDiv) {
+  try {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    
+    img.onload = async function() {
+      URL.revokeObjectURL(url);
+      
+      statusDiv.textContent = '🔄 Extracting text from screenshot...';
+      
+      const { data: { text } } = await Tesseract.recognize(
+        img,
+        'eng',
+        {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              statusDiv.textContent = `🔄 Extracting text... ${Math.round(m.progress * 100)}%`;
+            }
+          }
+        }
+      );
+
+      const courses = parseResultText(text);
+      
+      if (courses.length === 0) {
+        statusDiv.className = 'upload-status error';
+        statusDiv.textContent = '❌ No course data found. Please upload a clearer screenshot manually.';
+        return;
+      }
+
+      populateTable(courses);
+      
+      statusDiv.className = 'upload-status success';
+      statusDiv.textContent = `✅ Successfully extracted ${courses.length} courses! Now enter credits for each course.`;
+      
+      setTimeout(() => {
+        document.querySelector('.table-container').scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 500);
+    };
+    
+    img.src = url;
+  } catch (error) {
+    console.error('Processing error:', error);
+    statusDiv.className = 'upload-status error';
+    statusDiv.textContent = '❌ Failed to process image. Please try uploading manually.';
+  }
+}
+
 // Populate table with extracted course data
 function populateTable(courses) {
   const tbody = document.getElementById('gradesBody');
