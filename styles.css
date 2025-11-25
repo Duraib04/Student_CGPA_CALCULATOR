@@ -404,6 +404,82 @@ tbody tr:hover {
   transform: translateY(-2px);
 }
 
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.print-btn, .reset-btn-main {
+  flex: 1;
+  padding: 0.875rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.print-btn {
+  background: #28a745;
+  color: white;
+}
+
+.print-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.reset-btn-main {
+  background: #dc3545;
+  color: white;
+}
+
+.reset-btn-main:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+@media print {
+  header, .form-container, .portal-container, .upload-section, 
+  .grade-reference, .add-btn, .remove-btn, .calculate-btn, 
+  .action-buttons, .alternative {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+  }
+  
+  .cgpa-calculator {
+    box-shadow: none;
+    padding: 1rem;
+  }
+  
+  .cgpa-calculator h2 {
+    color: #000;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.5rem;
+  }
+  
+  table {
+    page-break-inside: avoid;
+  }
+  
+  .table-input {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+  }
+  
+  .cgpa-result {
+    border: 2px solid #000;
+    margin: 1rem 0;
+    page-break-inside: avoid;
+  }
+}
+
 @media (max-width: 768px) {
   header {
     padding: 1.5rem 1rem;

@@ -582,3 +582,92 @@ function populateTable(courses) {
     tbody.appendChild(newRow);
   });
 }
+
+// Print results with CGPA
+function printResults() {
+  const cgpa = document.getElementById('cgpaValue').textContent;
+  
+  if (cgpa === '0.00') {
+    alert('Please calculate CGPA first before printing.');
+    return;
+  }
+  
+  const rows = document.querySelectorAll('#gradesBody tr');
+  if (rows.length === 0) {
+    alert('No courses to print. Please add courses first.');
+    return;
+  }
+  
+  // Add print-specific content
+  const printHeader = document.createElement('div');
+  printHeader.className = 'print-header';
+  printHeader.style.display = 'none';
+  printHeader.innerHTML = `
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="margin: 0;">KSRCE - Student Results</h1>
+      <p style="margin: 0.5rem 0;">Academic Performance Report</p>
+      <p style="margin: 0; font-size: 0.9rem;">Printed on: ${new Date().toLocaleDateString()}</p>
+    </div>
+  `;
+  
+  document.querySelector('.cgpa-calculator').prepend(printHeader);
+  
+  // Show print header only during print
+  const style = document.createElement('style');
+  style.textContent = '@media print { .print-header { display: block !important; } }';
+  document.head.appendChild(style);
+  
+  // Trigger print
+  window.print();
+  
+  // Clean up
+  setTimeout(() => {
+    printHeader.remove();
+    style.remove();
+  }, 1000);
+}
+
+// Reset all data
+function resetAllData() {
+  if (confirm('Are you sure you want to reset all data? This will clear all courses and results.')) {
+    // Clear table
+    const tbody = document.getElementById('gradesBody');
+    tbody.innerHTML = `
+      <tr>
+        <td>1</td>
+        <td><input type="text" class="table-input" placeholder="24CST29"></td>
+        <td><input type="text" class="table-input" placeholder="Python Programming"></td>
+        <td><input type="number" class="table-input credit-input" placeholder="3" min="0" step="0.5"></td>
+        <td>
+          <select class="table-input grade-select">
+            <option value="">Select</option>
+            <option value="10">O</option>
+            <option value="9">A+</option>
+            <option value="8">A</option>
+            <option value="7">B+</option>
+            <option value="6">B</option>
+            <option value="5">C</option>
+            <option value="0">F</option>
+          </select>
+        </td>
+        <td class="grade-point">-</td>
+        <td><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
+      </tr>
+    `;
+    rowCount = 1;
+    
+    // Reset results
+    document.getElementById('totalCredits').textContent = '0';
+    document.getElementById('cgpaValue').textContent = '0.00';
+    
+    // Clear status
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.className = 'upload-status';
+    statusDiv.style.display = 'none';
+    
+    // Clear file input
+    document.getElementById('screenshotInput').value = '';
+    
+    alert('All data has been reset.');
+  }
+}
