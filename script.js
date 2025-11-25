@@ -196,7 +196,7 @@ function validateRegisterNumber(regno) {
   return alphanumericPattern.test(regno) || numericPattern.test(regno);
 }
 
-// Handle form submission
+// Handle form submissions
 document.getElementById('resultForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
@@ -232,8 +232,10 @@ document.getElementById('resultForm').addEventListener('submit', function(e) {
   window.location.href = 'results.html';
 });
 
-// Open results directly in new window
-function openResultsInNewWindow() {
+// Handle new window form submission
+document.getElementById('newWindowForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
   const regno = document.getElementById('regno').value.trim().toUpperCase();
   const formContainer = document.querySelector('.form-container');
   
@@ -254,38 +256,17 @@ function openResultsInNewWindow() {
     existingError.remove();
   }
   
-  // Create form and submit to new window
-  const form = document.createElement('form');
-  form.method = 'post';
-  form.action = 'https://www.ksrceresults.com/';
-  form.target = '_blank';
-  form.style.display = 'none';
-  
-  const fields = {
-    webresult: 'Webresult',
-    regno: regno,
-    resulttype: 'universityresult',
-    submit: 'Submit'
-  };
-  
-  for (const [name, value] of Object.entries(fields)) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
-  }
-  
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
+  // Set the hidden input value and submit
+  document.getElementById('regnoHidden2').value = regno;
+  this.submit();
   
   toast.success('Results opened in new window!', {
     title: 'Success',
     duration: 4000
   });
-}
+});
 
+// Open results directly in new window
 // CGPA Calculator Functions
 let rowCount = 1;
 

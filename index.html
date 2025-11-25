@@ -24,26 +24,35 @@
       <h2>Check Your Results</h2>
       <p class="instructions">Enter your Register Number to view your examination results</p>
       
-      <form id="resultForm" method="post" action="https://www.ksrceresults.com/" target="resultsFrame">
+      <div class="form-group">
+        <label for="regno">Register Number</label>
+        <input 
+          type="text" 
+          id="regno" 
+          class="form-input" 
+          placeholder="e.g., 21CSR001 or 73152419005" 
+          required>
+      </div>
+      
+      <!-- Form for viewing in frame -->
+      <form id="resultForm" method="post" action="https://www.ksrceresults.com/" target="resultsFrame" style="display: inline-block; width: 100%;">
         <input type="hidden" name="webresult" value="Webresult">
-        
-        <div class="form-group">
-          <label for="regno">Register Number</label>
-          <input 
-            type="text" 
-            id="regno" 
-            name="regno" 
-            class="form-input" 
-            placeholder="e.g., 21CSR001 or 73152419005" 
-            required>
-        </div>
-        
+        <input type="hidden" id="regnoHidden1" name="regno" value="">
         <input type="hidden" name="resulttype" value="universityresult">
         <input type="hidden" name="submit" value="Submit">
         
         <button type="submit" class="submit-btn">View Results in Frame</button>
-        <button type="button" onclick="openResultsInNewWindow()" class="submit-btn" style="margin-top: 0.75rem; background: #0f766e;">
-          Open Results in New Window
+      </form>
+      
+      <!-- Form for opening in new window -->
+      <form id="newWindowForm" method="post" action="https://www.ksrceresults.com/" target="_blank" style="display: inline-block; width: 100%; margin-top: 0.75rem;">
+        <input type="hidden" name="webresult" value="Webresult">
+        <input type="hidden" id="regnoHidden2" name="regno" value="">
+        <input type="hidden" name="resulttype" value="universityresult">
+        <input type="hidden" name="submit" value="Submit">
+        
+        <button type="submit" class="submit-btn" style="background: linear-gradient(135deg, #0f766e 0%, #0d5f58 100%);">
+          🔗 Open Results in New Window
         </button>
       </form>
       
