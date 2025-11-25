@@ -420,85 +420,78 @@ function parseResultText(text) {
   return uniqueCourses;
 }
 
-// Capture screenshot of the iframe
-async function captureScreenshot() {
-  const iframe = document.getElementById('resultsFrame');
+// Capture screen using browser Screen Capture API
+async function captureScreen() {
   const statusDiv = document.getElementById('uploadStatus');
   
-  if (!iframe.src || iframe.src === 'about:blank') {
-    alert('Please load your results in the portal first by entering your Register Number above.');
+  // Check if API is supported
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    statusDiv.className = 'upload-status error';
+    statusDiv.innerHTML = '❌ Screen capture not supported in your browser.<br>Please use "Upload Result Screenshot" option below.';
     return;
   }
 
   statusDiv.className = 'upload-status processing';
-  statusDiv.textContent = '📸 Capturing screenshot...';
+  statusDiv.textContent = '📸 Select the window/tab to capture...';
 
   try {
-    // Try to access iframe content directly first
-    let iframeDoc;
-    try {
-      iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      
-      if (iframeDoc && iframeDoc.body) {
-        // Convert iframe HTML to canvas
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Set canvas size
-        canvas.width = iframe.offsetWidth || 800;
-        canvas.height = iframe.offsetHeight || 600;
-        
-        // Create image from iframe content
-        const data = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '">' +
-                     '<foreignObject width="100%" height="100%">' +
-                     '<div xmlns="http://www.w3.org/1999/xhtml">' +
-                     iframeDoc.body.innerHTML +
-                     '</div>' +
-                     '</foreignObject>' +
-                     '</svg>';
-        
-        const img = new Image();
-        const blob = new Blob([data], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        
-        img.onload = async function() {
-          ctx.drawImage(img, 0, 0);
-          URL.revokeObjectURL(url);
-          
-          // Convert canvas to blob and process with OCR
-          canvas.toBlob(async function(blob) {
-            await processImageBlob(blob, statusDiv);
-          });
-        };
-        
-        img.onerror = function() {
-          statusDiv.className = 'upload-status error';
-          statusDiv.textContent = '❌ Failed to capture. Please upload a screenshot manually instead.';
-        };
-        
-        img.src = url;
-        return;
+    // Request screen capture with high resolution
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        mediaSource: 'screen',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
       }
-    } catch (e) {
-      console.log('Direct iframe access blocked:', e);
-    }
+    });
 
-    // If direct access fails, ask user to upload screenshot
-    statusDiv.className = 'upload-status error';
-    statusDiv.innerHTML = '❌ Cannot capture due to security restrictions.<br>Please use the "Upload Result Screenshot" option below instead.';
+    statusDiv.textContent = '📸 Processing captured screen...';
+
+    // Create video element to capture frame
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.autoplay = true;
     
-    // Scroll to upload section
-    setTimeout(() => {
-      document.querySelector('.upload-section').scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }, 1000);
+    // Wait for video to load
+    await new Promise(resolve => {
+      video.onloadedmetadata = () => {
+        video.play();
+        resolve();
+      };
+    });
+
+    // Small delay to ensure video is ready
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Create canvas and capture frame
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    // Stop the stream
+    stream.getTracks().forEach(track => track.stop());
+
+    statusDiv.textContent = '🔄 Extracting text from capture...';
+
+    // Convert canvas to blob and process with OCR
+    canvas.toBlob(async function(blob) {
+      await processImageBlob(blob, statusDiv);
+    }, 'image/png');
 
   } catch (error) {
-    console.error('Screenshot capture error:', error);
-    statusDiv.className = 'upload-status error';
-    statusDiv.innerHTML = '❌ Screenshot capture failed.<br>Please use "Upload Result Screenshot" option below.';
+    console.error('Screen capture error:', error);
+    
+    if (error.name === 'NotAllowedError') {
+      statusDiv.className = 'upload-status error';
+      statusDiv.innerHTML = '❌ Screen capture permission denied.<br>Please use "Upload Result Screenshot" option below.';
+    } else if (error.name === 'NotSupportedError') {
+      statusDiv.className = 'upload-status error';
+      statusDiv.innerHTML = '❌ Screen capture not supported.<br>Please use "Upload Result Screenshot" option below.';
+    } else {
+      statusDiv.className = 'upload-status error';
+      statusDiv.innerHTML = '❌ Screen capture failed.<br>Please use "Upload Result Screenshot" option below.';
+    }
   }
 }
 
