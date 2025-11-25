@@ -36,8 +36,8 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  max-width: 1400px;
+  padding: 0.5rem;
+  max-width: 100%;
   width: 100%;
   margin: 0 auto;
 }
@@ -48,13 +48,13 @@ main {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   overflow: hidden;
   flex: 1;
-  min-height: 600px;
+  min-height: calc(100vh - 180px);
 }
 
 #resultsFrame {
   width: 100%;
   height: 100%;
-  min-height: 600px;
+  min-height: calc(100vh - 180px);
   border: none;
   display: block;
 }
