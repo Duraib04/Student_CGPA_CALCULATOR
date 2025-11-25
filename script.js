@@ -47,7 +47,103 @@ window.addEventListener('load', function() {
   document.querySelectorAll('.credit-input').forEach(input => {
     input.addEventListener('input', validateCreditInput);
   });
+  
+  // Add dynamic interactions
+  initDynamicFeatures();
 });
+
+// Initialize dynamic features
+function initDynamicFeatures() {
+  // Add typing effect to register number input
+  const regnoInput = document.getElementById('regno');
+  if (regnoInput) {
+    regnoInput.addEventListener('input', function() {
+      this.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1)';
+      }, 100);
+    });
+  }
+  
+  // Add shake animation to invalid inputs
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('invalid', function(e) {
+      e.preventDefault();
+      this.classList.add('shake');
+      setTimeout(() => {
+        this.classList.remove('shake');
+      }, 500);
+    });
+  });
+  
+  // Add progress indicator to CGPA result
+  const cgpaValue = document.getElementById('cgpaValue');
+  if (cgpaValue) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && cgpaValue.textContent !== '0.00') {
+          animateValue(cgpaValue, 0, parseFloat(cgpaValue.textContent), 1000);
+        }
+      });
+    });
+    observer.observe(cgpaValue, { childList: true, characterData: true, subtree: true });
+  }
+  
+  // Parallax effect on scroll
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+    const header = document.querySelector('header');
+    
+    if (header) {
+      header.style.transform = `translateY(${currentScroll * 0.5}px)`;
+    }
+    
+    lastScroll = currentScroll;
+  });
+  
+  // Add ripple effect to buttons
+  document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple');
+      this.appendChild(ripple);
+      
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+}
+
+// Animate number counting
+function animateValue(element, start, end, duration) {
+  const startTime = performance.now();
+  const range = end - start;
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+    const current = start + (range * easeOutQuart);
+    
+    element.textContent = current.toFixed(2);
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+  
+  requestAnimationFrame(update);
+}
 
 // Save current state to localStorage
 function saveToLocalStorage() {
@@ -307,6 +403,17 @@ function addRow() {
     input.addEventListener('input', saveToLocalStorage);
   });
   
+  // Add real-time calculation listeners
+  const newCreditInput = newRow.querySelector('.credit-input');
+  const newGradeSelect = newRow.querySelector('.grade-select');
+  
+  if (newCreditInput) {
+    newCreditInput.addEventListener('input', calculateCGPARealTime);
+  }
+  if (newGradeSelect) {
+    newGradeSelect.addEventListener('change', calculateCGPARealTime);
+  }
+  
   updateRowNumbers();
 }
 
@@ -340,6 +447,52 @@ function updateRowNumbers() {
     row.querySelector('td:first-child').textContent = index + 1;
   });
   rowCount = rows.length;
+}
+
+// Real-time CGPA calculation
+function calculateCGPARealTime() {
+  const rows = document.querySelectorAll('#gradesBody tr');
+  let totalCredits = 0;
+  let totalGradePoints = 0;
+  let validRows = 0;
+
+  rows.forEach((row) => {
+    const creditInput = row.querySelector('.credit-input');
+    const gradeSelect = row.querySelector('.grade-select');
+    const gradePointCell = row.querySelector('.grade-point');
+    
+    const credit = parseFloat(creditInput.value) || 0;
+    const gradePoint = parseFloat(gradeSelect.value);
+    
+    if (credit > 0 && !isNaN(gradePoint) && gradePoint !== '') {
+      const points = credit * gradePoint;
+      gradePointCell.textContent = gradePoint;
+      gradePointCell.style.color = 'var(--accent-primary)';
+      totalCredits += credit;
+      totalGradePoints += points;
+      validRows++;
+    } else {
+      gradePointCell.textContent = '-';
+    }
+  });
+
+  if (validRows > 0) {
+    const cgpa = totalGradePoints / totalCredits;
+    document.getElementById('totalCredits').textContent = totalCredits.toFixed(1);
+    document.getElementById('cgpaValue').textContent = cgpa.toFixed(2);
+    
+    // Add color based on CGPA value
+    const cgpaElement = document.getElementById('cgpaValue');
+    if (cgpa >= 8.5) {
+      cgpaElement.style.color = '#10b981'; // Green
+    } else if (cgpa >= 7.0) {
+      cgpaElement.style.color = '#3b82f6'; // Blue
+    } else if (cgpa >= 6.0) {
+      cgpaElement.style.color = '#f59e0b'; // Orange
+    } else {
+      cgpaElement.style.color = '#ef4444'; // Red
+    }
+  }
 }
 
 function calculateCGPA() {
