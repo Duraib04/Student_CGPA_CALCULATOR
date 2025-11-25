@@ -190,9 +190,9 @@ function sanitizeInput(input) {
 function validateRegisterNumber(regno) {
   // KSRCE formats:
   // 1. Alphanumeric: 21CSR001, 22EEE123, 21MEC045 (2 digits + 3 letters + 3-4 digits)
-  // 2. Numeric: 73152419005 (11 digits)
+  // 2. Numeric only: Any length between 8-15 digits (e.g., 73152419005)
   const alphanumericPattern = /^[0-9]{2}[A-Z]{3}[0-9]{3,4}$/i;
-  const numericPattern = /^[0-9]{11}$/;
+  const numericPattern = /^[0-9]{8,15}$/;
   return alphanumericPattern.test(regno) || numericPattern.test(regno);
 }
 
@@ -246,7 +246,7 @@ document.getElementById('newWindowForm').addEventListener('submit', function(e) 
   
   // Validate register number format
   if (!validateRegisterNumber(regno)) {
-    showError('Invalid register number format. Expected formats: 21CSR001 or 73152419005', formContainer);
+    showError('Invalid register number. Expected: alphanumeric (21CSR001) or numeric (8-15 digits)', formContainer);
     return;
   }
   
