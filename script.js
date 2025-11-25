@@ -312,50 +312,112 @@ function parseResultText(text) {
   const courses = [];
   const lines = text.split('\n');
   
-  // Pattern to match course rows: number, semester, course code, course name, grade
-  // Example: "1 2 24CST29 Python Programming A P"
-  const coursePattern = /(\d+)\s+(\d+)\s+([A-Z0-9]+)\s+([A-Za-z\s&\-]+?)\s+([OABCDF][+]?)\s+[PF]/i;
+  console.log('OCR Text:', text); // Debug log
   
+  // Clean and normalize text
+  const normalizedText = text.replace(/\s+/g, ' ').trim();
+  
+  // Multiple patterns to catch different OCR formats
+  const patterns = [
+    // Pattern 1: Full row with S.NO, semester, code, name, grade, result
+    /(\d+)\s+(\d+)\s+([0-9]{2}[A-Z]{2,4}[0-9]{2})\s+(.+?)\s+([OABCDF][+]?)\s+[PF]/gi,
+    
+    // Pattern 2: Just course code, name, and grade
+    /([0-9]{2}[A-Z]{2,4}[0-9]{2})\s+(.+?)\s+([OABCDF][+]?)\s+[PF]/gi,
+    
+    // Pattern 3: More flexible - find course codes and look for nearby grades
+    /([0-9]{2}[A-Z]{2,4}[0-9]{2})\s+([A-Za-z][^0-9A-Z]*?[A-Za-z])\s+([OABCDF][+]?)/gi
+  ];
+  
+  // Try each pattern
+  for (const pattern of patterns) {
+    let match;
+    const tempCourses = [];
+    
+    while ((match = pattern.exec(normalizedText)) !== null) {
+      let courseCode, courseName, grade;
+      
+      if (match.length === 6) {
+        // Full pattern match
+        [, , , courseCode, courseName, grade] = match;
+      } else if (match.length === 4) {
+        // Shorter pattern match
+        [, courseCode, courseName, grade] = match;
+      }
+      
+      if (courseCode && grade) {
+        // Clean course name - remove extra spaces and unwanted characters
+        courseName = (courseName || '').trim().replace(/\s+/g, ' ');
+        
+        // Avoid duplicates
+        const isDuplicate = tempCourses.some(c => c.courseCode === courseCode.trim());
+        if (!isDuplicate) {
+          tempCourses.push({
+            courseCode: courseCode.trim(),
+            courseName: courseName,
+            grade: grade.trim().toUpperCase()
+          });
+        }
+      }
+    }
+    
+    if (tempCourses.length > courses.length) {
+      courses.length = 0;
+      courses.push(...tempCourses);
+    }
+  }
+  
+  // Fallback: Line-by-line parsing for missed courses
   for (let line of lines) {
     line = line.trim();
+    if (line.length < 5) continue;
     
-    // Try to match course pattern
-    const match = line.match(coursePattern);
-    if (match) {
-      const [, sno, semester, courseCode, courseName, grade] = match;
-      courses.push({
-        courseCode: courseCode.trim(),
-        courseName: courseName.trim(),
-        grade: grade.trim().toUpperCase()
-      });
-    } else {
-      // Alternative: look for lines with course codes (pattern: 24XXX29 or similar)
-      const codeMatch = line.match(/([0-9]{2}[A-Z]{3}[0-9]{2})/);
-      if (codeMatch) {
-        const parts = line.split(/\s+/);
-        const codeIndex = parts.findIndex(p => /^[0-9]{2}[A-Z]{3}[0-9]{2}$/.test(p));
+    // Look for course code pattern
+    const codeMatch = line.match(/([0-9]{2}[A-Z]{2,4}[0-9]{2})/);
+    if (!codeMatch) continue;
+    
+    const courseCode = codeMatch[1];
+    
+    // Check if already found
+    if (courses.some(c => c.courseCode === courseCode)) continue;
+    
+    // Split line into parts
+    const parts = line.split(/\s+/);
+    const codeIndex = parts.findIndex(p => p === courseCode);
+    
+    if (codeIndex >= 0) {
+      // Find grade after course code
+      let gradeIndex = -1;
+      for (let i = codeIndex + 1; i < parts.length; i++) {
+        if (/^[OABCDF][+]?$/i.test(parts[i])) {
+          gradeIndex = i;
+          break;
+        }
+      }
+      
+      if (gradeIndex > codeIndex) {
+        const courseName = parts.slice(codeIndex + 1, gradeIndex).join(' ').trim();
+        const grade = parts[gradeIndex];
         
-        if (codeIndex >= 0 && parts.length > codeIndex + 2) {
-          const courseCode = parts[codeIndex];
-          // Find grade (O, A+, A, B+, B, C, F)
-          const gradeIndex = parts.findIndex(p => /^[OABCDF][+]?$/.test(p));
-          
-          if (gradeIndex > codeIndex) {
-            const courseName = parts.slice(codeIndex + 1, gradeIndex).join(' ');
-            const grade = parts[gradeIndex];
-            
-            courses.push({
-              courseCode: courseCode.trim(),
-              courseName: courseName.trim(),
-              grade: grade.trim().toUpperCase()
-            });
-          }
+        if (courseName.length > 0) {
+          courses.push({
+            courseCode: courseCode.trim(),
+            courseName: courseName,
+            grade: grade.trim().toUpperCase()
+          });
         }
       }
     }
   }
   
-  return courses;
+  // Remove any duplicates and sort by course code
+  const uniqueCourses = Array.from(
+    new Map(courses.map(c => [c.courseCode, c])).values()
+  );
+  
+  console.log('Extracted courses:', uniqueCourses); // Debug log
+  
+  return uniqueCourses;
 }
 
 // Populate table with extracted course data
