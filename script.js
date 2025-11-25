@@ -676,40 +676,37 @@ function resetAllData() {
 function printPortal() {
   const iframe = document.getElementById('resultsFrame');
   
-  if (!iframe.src || iframe.src === 'about:blank') {
-    alert('Please load your results in the portal first by entering your Register Number above.');
-    return;
-  }
-
   try {
     // Try to access iframe content and trigger print
-    const iframeWindow = iframe.contentWindow;
+    const iframeWindow = iframe.contentWindow || iframe.contentDocument?.defaultView;
     
     if (iframeWindow) {
-      iframeWindow.focus();
-      iframeWindow.print();
-    } else {
-      // Fallback: open portal in new window and print
-      const newWindow = window.open(iframe.src, '_blank');
-      if (newWindow) {
-        newWindow.onload = function() {
-          setTimeout(() => {
-            newWindow.print();
-          }, 1000);
-        };
-      } else {
-        alert('Please allow pop-ups to print the portal result, or visit the portal directly and use its print button.');
+      try {
+        iframeWindow.focus();
+        iframeWindow.print();
+        return;
+      } catch (e) {
+        console.log('Direct iframe print blocked:', e);
       }
     }
   } catch (error) {
-    console.error('Print portal error:', error);
-    
-    // If direct access fails, suggest alternatives
-    const portalUrl = 'https://www.ksrceresults.com/';
-    const message = `Unable to print directly due to security restrictions.\n\nOptions:\n1. Click OK to open the portal in a new tab and use its print button\n2. Use "📸 Capture Screen" then "🖨️ Print Results with CGPA"`;
-    
-    if (confirm(message)) {
-      window.open(portalUrl, '_blank');
+    console.log('Iframe access error:', error);
+  }
+  
+  // Fallback: open portal in new window
+  const portalUrl = iframe.src || 'https://www.ksrceresults.com/';
+  
+  if (portalUrl === 'about:blank' || !portalUrl) {
+    alert('Please load your results first by entering your Register Number above, then try printing again.');
+    return;
+  }
+  
+  const message = `The portal will open in a new tab where you can:\n1. View your results\n2. Use the portal's print button\n\nClick OK to continue.`;
+  
+  if (confirm(message)) {
+    const newWindow = window.open(portalUrl, '_blank', 'width=1200,height=800');
+    if (!newWindow) {
+      alert('Please allow pop-ups for this site to open the portal for printing.');
     }
   }
 }
