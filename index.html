@@ -61,7 +61,20 @@
 
     <div class="cgpa-calculator">
       <h2>CGPA Calculator</h2>
-      <p class="instructions">Import your results from portal above or enter manually with credits</p>
+      <p class="instructions">Upload screenshot or enter manually with credits</p>
+      
+      <div class="upload-section">
+        <div class="upload-box">
+          <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" style="display: none;">
+          <label for="screenshotInput" class="upload-label">
+            <span class="upload-icon">📸</span>
+            <span class="upload-text">Upload Result Screenshot</span>
+            <span class="upload-subtext">Click to select or drag image here</span>
+          </label>
+        </div>
+        <div id="uploadStatus" class="upload-status"></div>
+        <canvas id="previewCanvas" style="display: none;"></canvas>
+      </div>
       
       <div class="grade-reference">
         <strong>Grade Points:</strong> O=10, A+=9, A=8, B+=7, B=6, C=5
@@ -122,6 +135,7 @@
     </div>
   </main>
   
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

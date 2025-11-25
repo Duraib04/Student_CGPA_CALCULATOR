@@ -234,3 +234,162 @@ function importFromPortal() {
     alert('Error importing data. Please enter course details manually.\n\nMake sure:\n1. Your results are displayed in the portal\n2. The portal has loaded completely');
   }
 }
+
+// Handle screenshot upload and OCR
+async function handleScreenshot(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusDiv = document.getElementById('uploadStatus');
+  statusDiv.className = 'upload-status processing';
+  statusDiv.textContent = '🔄 Processing screenshot... This may take a moment.';
+
+  try {
+    // Create image preview
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = async function(e) {
+      img.src = e.target.result;
+      
+      img.onload = async function() {
+        // Perform OCR using Tesseract.js
+        try {
+          const { data: { text } } = await Tesseract.recognize(
+            img,
+            'eng',
+            {
+              logger: m => {
+                if (m.status === 'recognizing text') {
+                  statusDiv.textContent = `🔄 Extracting text... ${Math.round(m.progress * 100)}%`;
+                }
+              }
+            }
+          );
+
+          // Parse extracted text
+          const courses = parseResultText(text);
+          
+          if (courses.length === 0) {
+            statusDiv.className = 'upload-status error';
+            statusDiv.textContent = '❌ No course data found in screenshot. Please ensure the image shows the result table clearly and try again.';
+            return;
+          }
+
+          // Populate table with extracted data
+          populateTable(courses);
+          
+          statusDiv.className = 'upload-status success';
+          statusDiv.textContent = `✅ Successfully extracted ${courses.length} courses! Now enter credits for each course.`;
+          
+          // Scroll to table
+          setTimeout(() => {
+            document.querySelector('.table-container').scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'center'
+            });
+          }, 500);
+
+        } catch (ocrError) {
+          console.error('OCR error:', ocrError);
+          statusDiv.className = 'upload-status error';
+          statusDiv.textContent = '❌ Failed to extract text from image. Please try a clearer screenshot or enter data manually.';
+        }
+      };
+    };
+
+    reader.readAsDataURL(file);
+
+  } catch (error) {
+    console.error('Screenshot processing error:', error);
+    statusDiv.className = 'upload-status error';
+    statusDiv.textContent = '❌ Error processing screenshot. Please try again or enter data manually.';
+  }
+}
+
+// Parse extracted OCR text to find course information
+function parseResultText(text) {
+  const courses = [];
+  const lines = text.split('\n');
+  
+  // Pattern to match course rows: number, semester, course code, course name, grade
+  // Example: "1 2 24CST29 Python Programming A P"
+  const coursePattern = /(\d+)\s+(\d+)\s+([A-Z0-9]+)\s+([A-Za-z\s&\-]+?)\s+([OABCDF][+]?)\s+[PF]/i;
+  
+  for (let line of lines) {
+    line = line.trim();
+    
+    // Try to match course pattern
+    const match = line.match(coursePattern);
+    if (match) {
+      const [, sno, semester, courseCode, courseName, grade] = match;
+      courses.push({
+        courseCode: courseCode.trim(),
+        courseName: courseName.trim(),
+        grade: grade.trim().toUpperCase()
+      });
+    } else {
+      // Alternative: look for lines with course codes (pattern: 24XXX29 or similar)
+      const codeMatch = line.match(/([0-9]{2}[A-Z]{3}[0-9]{2})/);
+      if (codeMatch) {
+        const parts = line.split(/\s+/);
+        const codeIndex = parts.findIndex(p => /^[0-9]{2}[A-Z]{3}[0-9]{2}$/.test(p));
+        
+        if (codeIndex >= 0 && parts.length > codeIndex + 2) {
+          const courseCode = parts[codeIndex];
+          // Find grade (O, A+, A, B+, B, C, F)
+          const gradeIndex = parts.findIndex(p => /^[OABCDF][+]?$/.test(p));
+          
+          if (gradeIndex > codeIndex) {
+            const courseName = parts.slice(codeIndex + 1, gradeIndex).join(' ');
+            const grade = parts[gradeIndex];
+            
+            courses.push({
+              courseCode: courseCode.trim(),
+              courseName: courseName.trim(),
+              grade: grade.trim().toUpperCase()
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  return courses;
+}
+
+// Populate table with extracted course data
+function populateTable(courses) {
+  const tbody = document.getElementById('gradesBody');
+  tbody.innerHTML = '';
+  rowCount = 0;
+
+  courses.forEach((data, index) => {
+    rowCount++;
+    const newRow = document.createElement('tr');
+    const gradePoint = gradeToPoint(data.grade);
+    
+    newRow.innerHTML = `
+      <td>${rowCount}</td>
+      <td><input type="text" class="table-input" value="${data.courseCode}" readonly></td>
+      <td><input type="text" class="table-input" value="${data.courseName}" readonly></td>
+      <td><input type="number" class="table-input credit-input" placeholder="Enter credits" min="0" step="0.5"></td>
+      <td>
+        <select class="table-input grade-select" disabled>
+          <option value="">Select</option>
+          <option value="10" ${gradePoint === '10' ? 'selected' : ''}>O</option>
+          <option value="9" ${gradePoint === '9' ? 'selected' : ''}>A+</option>
+          <option value="8" ${gradePoint === '8' ? 'selected' : ''}>A</option>
+          <option value="7" ${gradePoint === '7' ? 'selected' : ''}>B+</option>
+          <option value="6" ${gradePoint === '6' ? 'selected' : ''}>B</option>
+          <option value="5" ${gradePoint === '5' ? 'selected' : ''}>C</option>
+          <option value="0" ${gradePoint === '0' ? 'selected' : ''}>F</option>
+        </select>
+      </td>
+      <td class="grade-point">${gradePoint || '-'}</td>
+      <td><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
+    `;
+    
+    tbody.appendChild(newRow);
+  });
+}
