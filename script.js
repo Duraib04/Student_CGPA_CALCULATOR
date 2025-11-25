@@ -672,41 +672,121 @@ function resetAllData() {
   }
 }
 
-// Print portal result
-function printPortal() {
+// Print portal result - automatic capture and print
+async function printPortal() {
   const iframe = document.getElementById('resultsFrame');
   
-  try {
-    // Try to access iframe content and trigger print
-    const iframeWindow = iframe.contentWindow || iframe.contentDocument?.defaultView;
-    
-    if (iframeWindow) {
-      try {
-        iframeWindow.focus();
-        iframeWindow.print();
-        return;
-      } catch (e) {
-        console.log('Direct iframe print blocked:', e);
-      }
-    }
-  } catch (error) {
-    console.log('Iframe access error:', error);
-  }
-  
-  // Fallback: open portal in new window
-  const portalUrl = iframe.src || 'https://www.ksrceresults.com/';
-  
-  if (portalUrl === 'about:blank' || !portalUrl) {
-    alert('Please load your results first by entering your Register Number above, then try printing again.');
+  // Check if results are loaded
+  if (!iframe.src && iframe.getAttribute('src') !== '') {
+    alert('Please load your results first by entering your Register Number above.');
     return;
   }
   
-  const message = `The portal will open in a new tab where you can:\n1. View your results\n2. Use the portal's print button\n\nClick OK to continue.`;
+  const statusDiv = document.getElementById('uploadStatus');
+  statusDiv.className = 'upload-status processing';
+  statusDiv.textContent = 'Capturing results for printing...';
   
-  if (confirm(message)) {
-    const newWindow = window.open(portalUrl, '_blank', 'width=1200,height=800');
-    if (!newWindow) {
-      alert('Please allow pop-ups for this site to open the portal for printing.');
+  try {
+    // Use screen capture API to get the iframe content
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        displaySurface: 'browser',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      },
+      audio: false,
+      preferCurrentTab: true
+    });
+    
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.play();
+    
+    // Wait for video to be ready
+    await new Promise(resolve => {
+      video.onloadedmetadata = () => {
+        video.onloadedmetadata = null;
+        resolve();
+      };
+    });
+    
+    // Create canvas and capture frame
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    
+    // Stop the stream
+    stream.getTracks().forEach(track => track.stop());
+    
+    // Convert to blob and create printable window
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      
+      // Create a new window with the image for printing
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Print Results</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 20px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            @media print {
+              body {
+                padding: 0;
+              }
+              img {
+                max-width: 100%;
+                page-break-inside: avoid;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${url}" alt="Results" onload="window.print()">
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      statusDiv.className = 'upload-status success';
+      statusDiv.textContent = 'Results captured! Print dialog opened.';
+      
+      setTimeout(() => {
+        statusDiv.className = 'upload-status';
+        statusDiv.textContent = '';
+      }, 3000);
+    }, 'image/png');
+    
+  } catch (error) {
+    console.error('Print capture error:', error);
+    statusDiv.className = 'upload-status error';
+    
+    if (error.name === 'NotAllowedError') {
+      statusDiv.textContent = 'Screen capture was cancelled. Please try again and select the browser window/tab.';
+    } else if (error.name === 'NotFoundError') {
+      statusDiv.textContent = 'Screen capture not available. Please use the "Capture Screen" button instead.';
+    } else {
+      statusDiv.textContent = 'Unable to capture for printing. Please use the "Capture Screen" button instead.';
     }
+    
+    setTimeout(() => {
+      statusDiv.className = 'upload-status';
+      statusDiv.textContent = '';
+    }, 5000);
   }
 }
