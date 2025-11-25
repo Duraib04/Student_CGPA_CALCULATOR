@@ -125,6 +125,13 @@ function initDynamicFeatures() {
 
 // Animate number counting
 function animateValue(element, start, end, duration) {
+  // Get element by ID if string is passed
+  const targetElement = typeof element === 'string' ? document.getElementById(element) : element;
+  if (!targetElement) return;
+  
+  // Add counting class for CSS animation
+  targetElement.classList.add('counting');
+  
   const startTime = performance.now();
   const range = end - start;
   
@@ -135,10 +142,13 @@ function animateValue(element, start, end, duration) {
     const easeOutQuart = 1 - Math.pow(1 - progress, 4);
     const current = start + (range * easeOutQuart);
     
-    element.textContent = current.toFixed(2);
+    targetElement.textContent = current.toFixed(2);
     
     if (progress < 1) {
       requestAnimationFrame(update);
+    } else {
+      // Remove counting class after animation
+      setTimeout(() => targetElement.classList.remove('counting'), 800);
     }
   }
   
@@ -1302,4 +1312,159 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initMagneticButtons);
 } else {
   initMagneticButtons();
+}
+
+// High-Performance Scroll Reveal Animation
+class ScrollReveal {
+  constructor() {
+    this.observer = null;
+    this.init();
+  }
+  
+  init() {
+    // Use Intersection Observer for better performance
+    const options = {
+      root: null,
+      rootMargin: '0px 0px -100px 0px',
+      threshold: 0.1
+    };
+    
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          // Unobserve after reveal for performance
+          this.observer.unobserve(entry.target);
+        }
+      });
+    }, options);
+    
+    // Observe all reveal elements
+    this.observeElements();
+  }
+  
+  observeElements() {
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach(el => this.observer.observe(el));
+  }
+  
+  addElement(element) {
+    if (this.observer && element) {
+      this.observer.observe(element);
+    }
+  }
+}
+
+// Initialize scroll reveal
+const scrollReveal = new ScrollReveal();
+
+// Add reveal classes to elements on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Add reveal to form sections
+  const formContainer = document.querySelector('.form-container');
+  const calculator = document.querySelector('.cgpa-calculator');
+  
+  if (formContainer) formContainer.classList.add('reveal');
+  if (calculator) calculator.classList.add('reveal', 'reveal-delay-2');
+  
+  // Trigger reveal
+  setTimeout(() => scrollReveal.observeElements(), 100);
+});
+
+// Optimized Button Ripple Effect
+function createRipple(event) {
+  const button = event.currentTarget;
+  
+  // Remove old ripples
+  const oldRipples = button.querySelectorAll('.btn-ripple');
+  oldRipples.forEach(ripple => ripple.remove());
+  
+  const ripple = document.createElement('span');
+  ripple.classList.add('btn-ripple');
+  
+  const rect = button.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  const x = event.clientX - rect.left - size / 2;
+  const y = event.clientY - rect.top - size / 2;
+  
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = x + 'px';
+  ripple.style.top = y + 'px';
+  
+  button.appendChild(ripple);
+  
+  // Remove ripple after animation with cleanup
+  setTimeout(() => ripple.remove(), 600);
+}
+
+// Add ripple to all buttons
+document.addEventListener('DOMContentLoaded', () => {
+  const buttons = document.querySelectorAll('.calculate-btn, .print-btn, .reset-btn-main, .add-btn');
+  buttons.forEach(button => {
+    button.addEventListener('click', createRipple);
+  });
+});
+
+// Stagger Animation for Table Rows (Performance Optimized)
+const originalAddRow = window.addRow;
+window.addRow = function() {
+  const result = originalAddRow ? originalAddRow.apply(this, arguments) : addRow.apply(this, arguments);
+  
+  // Use requestAnimationFrame for smooth animation
+  requestAnimationFrame(() => {
+    const rows = document.querySelectorAll('#gradesBody tr');
+    const lastRow = rows[rows.length - 1];
+    
+    if (lastRow) {
+      lastRow.classList.add('stagger-anim');
+      lastRow.style.animationDelay = '0s';
+    }
+  });
+  
+  return result;
+};
+
+// Optimized Input Focus Animation
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = document.querySelectorAll('input, select');
+  inputs.forEach(input => {
+    // Use passive event listeners for better scroll performance
+    input.addEventListener('focus', () => {
+      input.style.willChange = 'border-color, box-shadow';
+    }, { passive: true });
+    
+    input.addEventListener('blur', () => {
+      input.style.willChange = 'auto';
+    }, { passive: true });
+  });
+});
+
+// Performance Monitor (Development Only)
+if (window.performance && window.performance.memory) {
+  let frameCount = 0;
+  let lastTime = performance.now();
+  
+  function checkPerformance() {
+    frameCount++;
+    const currentTime = performance.now();
+    
+    if (currentTime >= lastTime + 1000) {
+      const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+      
+      // Log only if FPS drops below 30
+      if (fps < 30) {
+        console.warn(`Low FPS detected: ${fps} fps`);
+      }
+      
+      frameCount = 0;
+      lastTime = currentTime;
+    }
+    
+    requestAnimationFrame(checkPerformance);
+  }
+  
+  // Only run in development
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    requestAnimationFrame(checkPerformance);
+  }
 }
