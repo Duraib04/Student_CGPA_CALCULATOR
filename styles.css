@@ -298,6 +298,39 @@ main {
   border: 1px solid #f5c6cb;
 }
 
+.error-message {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #fee;
+  border-left: 4px solid #b91c1c;
+  border-radius: 6px;
+  animation: slideIn 0.3s ease;
+}
+
+.error-message strong {
+  display: block;
+  color: #b91c1c;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-message p {
+  color: #7f1d1d;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .grade-reference {
   background: #eff6ff;
   padding: 0.75rem;

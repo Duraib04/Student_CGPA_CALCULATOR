@@ -8,16 +8,94 @@ document.getElementById('resultForm').addEventListener('submit', function(e) {
     return;
   }
   
-  // Show the iframe container when form is submitted
-  document.querySelector('.portal-container').classList.add('active');
+  // Hide any previous error messages
+  const existingError = document.querySelector('.error-message');
+  if (existingError) {
+    existingError.remove();
+  }
   
-  // Scroll to results after a brief delay
-  setTimeout(() => {
-    document.querySelector('.portal-container').scrollIntoView({ 
-      behavior: 'smooth',
-      block: 'start'
-    });
-  }, 300);
+  // Show loading state
+  const submitBtn = this.querySelector('.submit-btn');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Loading Results...';
+  submitBtn.disabled = true;
+  
+  // Monitor iframe for results
+  const iframe = document.getElementById('resultsFrame');
+  let loadTimeout;
+  
+  const checkIframeContent = () => {
+    clearTimeout(loadTimeout);
+    
+    // Set timeout to check if results loaded
+    loadTimeout = setTimeout(() => {
+      try {
+        // Try to check if iframe has content
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        
+        // Check if iframe body has meaningful content
+        if (iframeDoc && iframeDoc.body) {
+          const bodyText = iframeDoc.body.innerText || iframeDoc.body.textContent || '';
+          const bodyHTML = iframeDoc.body.innerHTML || '';
+          
+          // Check for error indicators
+          if (bodyText.toLowerCase().includes('invalid') || 
+              bodyText.toLowerCase().includes('not found') ||
+              bodyText.toLowerCase().includes('error') ||
+              bodyHTML.length < 100) {
+            showError();
+            return;
+          }
+          
+          // If content looks valid, show the portal
+          document.querySelector('.portal-container').classList.add('active');
+          setTimeout(() => {
+            document.querySelector('.portal-container').scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }, 300);
+        }
+      } catch (e) {
+        // Cross-origin restriction - assume it loaded successfully
+        // Show the portal container
+        document.querySelector('.portal-container').classList.add('active');
+        setTimeout(() => {
+          document.querySelector('.portal-container').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }, 300);
+      }
+      
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }, 2000);
+  };
+  
+  const showError = () => {
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+    
+    // Hide portal container
+    document.querySelector('.portal-container').classList.remove('active');
+    
+    // Show error message
+    const formContainer = document.querySelector('.form-container');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.innerHTML = `
+      <strong>⚠️ Invalid Register Number</strong>
+      <p>The register number you entered was not found. Please check and try again.</p>
+    `;
+    formContainer.appendChild(errorDiv);
+    
+    // Scroll to error
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  
+  // Listen for iframe load event
+  iframe.addEventListener('load', checkIframeContent, { once: true });
 });
 
 // CGPA Calculator Functions
