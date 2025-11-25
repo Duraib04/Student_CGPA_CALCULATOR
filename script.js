@@ -1,16 +1,194 @@
+// Clear sessionStorage when page loads (new session)
+window.addEventListener('load', function() {
+  // Clear register number from previous session
+  sessionStorage.removeItem('registerNumber');
+  
+  // Load saved data from localStorage
+  loadFromLocalStorage();
+  
+  // Add auto-save listeners to existing inputs
+  document.querySelectorAll('.table-input').forEach(input => {
+    input.addEventListener('input', saveToLocalStorage);
+  });
+  
+  // Add credit validation to existing credit inputs
+  document.querySelectorAll('.credit-input').forEach(input => {
+    input.addEventListener('input', validateCreditInput);
+  });
+});
+
+// Save current state to localStorage
+function saveToLocalStorage() {
+  const rows = document.querySelectorAll('#gradesBody tr');
+  const data = [];
+  
+  rows.forEach(row => {
+    const courseCode = row.querySelectorAll('.table-input')[0].value;
+    const courseName = row.querySelectorAll('.table-input')[1].value;
+    const credit = row.querySelector('.credit-input').value;
+    const grade = row.querySelector('.grade-select').value;
+    
+    data.push({ courseCode, courseName, credit, grade });
+  });
+  
+  localStorage.setItem('cgpaCalculatorData', JSON.stringify(data));
+}
+
+// Load saved state from localStorage
+function loadFromLocalStorage() {
+  const savedData = localStorage.getItem('cgpaCalculatorData');
+  
+  if (!savedData) return;
+  
+  try {
+    const data = JSON.parse(savedData);
+    
+    if (data.length === 0) return;
+    
+    // Ask user if they want to restore previous session
+    const container = document.querySelector('.cgpa-calculator');
+    const promptDiv = document.createElement('div');
+    promptDiv.className = 'upload-status success';
+    promptDiv.style.display = 'block';
+    promptDiv.innerHTML = `
+      <strong>Previous session found!</strong>
+      <p>Would you like to restore your saved data?</p>
+      <button onclick="restoreSession()" style="margin: 0.5rem 0.25rem; padding: 0.5rem 1rem; background: #0f766e; color: white; border: none; border-radius: 4px; cursor: pointer;">Restore</button>
+      <button onclick="clearSession()" style="margin: 0.5rem 0.25rem; padding: 0.5rem 1rem; background: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer;">Start Fresh</button>
+    `;
+    
+    container.insertBefore(promptDiv, container.firstChild);
+  } catch (error) {
+    // Invalid data, clear it
+    localStorage.removeItem('cgpaCalculatorData');
+  }
+}
+
+// Restore session from saved data
+function restoreSession() {
+  const savedData = localStorage.getItem('cgpaCalculatorData');
+  
+  if (!savedData) return;
+  
+  try {
+    const data = JSON.parse(savedData);
+    const tbody = document.getElementById('gradesBody');
+    
+    // Clear existing rows
+    tbody.innerHTML = '';
+    rowCount = 0;
+    
+    // Restore each row
+    data.forEach(item => {
+      rowCount++;
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td>${rowCount}</td>
+        <td><input type="text" class="table-input" placeholder="Course Code" value="${sanitizeInput(item.courseCode || '')}"></td>
+        <td><input type="text" class="table-input" placeholder="Course Name" value="${sanitizeInput(item.courseName || '')}"></td>
+        <td><input type="number" class="table-input credit-input" placeholder="3" min="0.5" max="4" step="0.5" value="${item.credit || ''}"></td>
+        <td>
+          <select class="table-input grade-select">
+            <option value="">Select</option>
+            <option value="10" ${item.grade === '10' ? 'selected' : ''}>O</option>
+            <option value="9" ${item.grade === '9' ? 'selected' : ''}>A+</option>
+            <option value="8" ${item.grade === '8' ? 'selected' : ''}>A</option>
+            <option value="7" ${item.grade === '7' ? 'selected' : ''}>B+</option>
+            <option value="6" ${item.grade === '6' ? 'selected' : ''}>B</option>
+            <option value="5" ${item.grade === '5' ? 'selected' : ''}>C</option>
+            <option value="0" ${item.grade === '0' ? 'selected' : ''}>F</option>
+          </select>
+        </td>
+        <td class="grade-point">-</td>
+        <td><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
+      `;
+      tbody.appendChild(newRow);
+      
+      // Add listeners
+      newRow.querySelectorAll('.table-input').forEach(input => {
+        input.addEventListener('input', saveToLocalStorage);
+      });
+      newRow.querySelector('.credit-input').addEventListener('input', validateCreditInput);
+    });
+    
+    // Remove prompt
+    document.querySelector('.upload-status')?.remove();
+    
+    // Show success message
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.className = 'upload-status success';
+    statusDiv.textContent = 'Previous session restored successfully!';
+    statusDiv.style.display = 'block';
+    
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 3000);
+  } catch (error) {
+    localStorage.removeItem('cgpaCalculatorData');
+  }
+}
+
+// Clear saved session
+function clearSession() {
+  localStorage.removeItem('cgpaCalculatorData');
+  document.querySelector('.upload-status')?.remove();
+}
+
+// Utility function to show error messages
+function showError(message, container) {
+  const existingError = container.querySelector('.error-message');
+  if (existingError) {
+    existingError.remove();
+  }
+  
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'error-message';
+  const strong = document.createElement('strong');
+  strong.textContent = '⚠️ Error';
+  const p = document.createElement('p');
+  p.textContent = message;
+  errorDiv.appendChild(strong);
+  errorDiv.appendChild(p);
+  container.appendChild(errorDiv);
+  
+  errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Sanitize text input to prevent XSS
+function sanitizeInput(input) {
+  const div = document.createElement('div');
+  div.textContent = input;
+  return div.innerHTML;
+}
+
+// Validate KSRCE register number format
+function validateRegisterNumber(regno) {
+  // KSRCE format: typically starts with 2 digits (year) followed by alphanumeric
+  // Examples: 21CSR001, 22EEE123, 21MEC045
+  const pattern = /^[0-9]{2}[A-Z]{3}[0-9]{3,4}$/i;
+  return pattern.test(regno);
+}
+
 // Handle form submission
 document.getElementById('resultForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
-  const regno = document.getElementById('regno').value.trim();
+  const regno = document.getElementById('regno').value.trim().toUpperCase();
+  const formContainer = document.querySelector('.form-container');
   
   if (!regno) {
-    alert('Please enter your Register Number');
+    showError('Please enter your Register Number', formContainer);
+    return;
+  }
+  
+  // Validate register number format
+  if (!validateRegisterNumber(regno)) {
+    showError('Invalid register number format. Expected format: 21CSR001 (2 digits + 3 letters + 3-4 digits)', formContainer);
     return;
   }
   
   // Hide any previous error messages
-  const existingError = document.querySelector('.error-message');
+  const existingError = formContainer.querySelector('.error-message');
   if (existingError) {
     existingError.remove();
   }
@@ -39,7 +217,7 @@ function addRow() {
     <td>${rowCount}</td>
     <td><input type="text" class="table-input" placeholder="Course Code"></td>
     <td><input type="text" class="table-input" placeholder="Course Name"></td>
-    <td><input type="number" class="table-input credit-input" placeholder="3" min="0" step="0.5"></td>
+    <td><input type="number" class="table-input credit-input" placeholder="3" min="0.5" max="4" step="0.5"></td>
     <td>
       <select class="table-input grade-select">
         <option value="">Select</option>
@@ -57,7 +235,31 @@ function addRow() {
   `;
   
   tbody.appendChild(newRow);
+  
+  // Add credit validation listener
+  const creditInput = newRow.querySelector('.credit-input');
+  creditInput.addEventListener('input', validateCreditInput);
+  
+  // Add auto-save listener
+  newRow.querySelectorAll('.table-input').forEach(input => {
+    input.addEventListener('input', saveToLocalStorage);
+  });
+  
   updateRowNumbers();
+}
+
+// Validate credit input
+function validateCreditInput(e) {
+  const input = e.target;
+  const value = parseFloat(input.value);
+  
+  if (value < 0.5 || value > 4) {
+    input.style.borderColor = '#b91c1c';
+    input.title = 'Credits must be between 0.5 and 4.0';
+  } else {
+    input.style.borderColor = '';
+    input.title = '';
+  }
 }
 
 function removeRow(btn) {
@@ -65,7 +267,8 @@ function removeRow(btn) {
     btn.closest('tr').remove();
     updateRowNumbers();
   } else {
-    alert('At least one course is required');
+    const container = document.querySelector('.cgpa-calculator');
+    showError('At least one course is required', container);
   }
 }
 
@@ -105,12 +308,14 @@ function calculateCGPA() {
   });
 
   if (hasEmptyFields) {
-    alert('Please fill in all credits and grades for the courses you want to include');
+    const container = document.querySelector('.cgpa-calculator');
+    showError('Please fill in all credits and grades for the courses you want to include', container);
     return;
   }
 
   if (totalCredits === 0) {
-    alert('Please enter at least one course with credits and grade');
+    const container = document.querySelector('.cgpa-calculator');
+    showError('Please enter at least one course with credits and grade', container);
     return;
   }
 
@@ -319,8 +524,6 @@ function parseResultText(text) {
   const courses = [];
   const lines = text.split('\n');
   
-  console.log('OCR Text:', text); // Debug log
-  
   // Clean and normalize text
   const normalizedText = text.replace(/\s+/g, ' ').trim();
   
@@ -421,8 +624,6 @@ function parseResultText(text) {
   const uniqueCourses = Array.from(
     new Map(courses.map(c => [c.courseCode, c])).values()
   );
-  
-  console.log('Extracted courses:', uniqueCourses); // Debug log
   
   return uniqueCourses;
 }
@@ -593,15 +794,16 @@ function populateTable(courses) {
 // Print results with CGPA
 function printResults() {
   const cgpa = document.getElementById('cgpaValue').textContent;
+  const container = document.querySelector('.cgpa-calculator');
   
   if (cgpa === '0.00') {
-    alert('Please calculate CGPA first before printing.');
+    showError('Please calculate CGPA first before printing.', container);
     return;
   }
   
   const rows = document.querySelectorAll('#gradesBody tr');
   if (rows.length === 0) {
-    alert('No courses to print. Please add courses first.');
+    showError('No courses to print. Please add courses first.', container);
     return;
   }
   
@@ -675,7 +877,14 @@ function resetAllData() {
     // Clear file input
     document.getElementById('screenshotInput').value = '';
     
-    alert('All data has been reset.');
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.className = 'upload-status success';
+    statusDiv.textContent = 'All data has been reset.';
+    statusDiv.style.display = 'block';
+    
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 3000);
   }
 }
 
