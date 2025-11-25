@@ -232,6 +232,60 @@ document.getElementById('resultForm').addEventListener('submit', function(e) {
   window.location.href = 'results.html';
 });
 
+// Open results directly in new window
+function openResultsInNewWindow() {
+  const regno = document.getElementById('regno').value.trim().toUpperCase();
+  const formContainer = document.querySelector('.form-container');
+  
+  if (!regno) {
+    showError('Please enter your Register Number', formContainer);
+    return;
+  }
+  
+  // Validate register number format
+  if (!validateRegisterNumber(regno)) {
+    showError('Invalid register number format. Expected formats: 21CSR001 or 73152419005', formContainer);
+    return;
+  }
+  
+  // Hide any previous error messages
+  const existingError = formContainer.querySelector('.error-message');
+  if (existingError) {
+    existingError.remove();
+  }
+  
+  // Create form and submit to new window
+  const form = document.createElement('form');
+  form.method = 'post';
+  form.action = 'https://www.ksrceresults.com/';
+  form.target = '_blank';
+  form.style.display = 'none';
+  
+  const fields = {
+    webresult: 'Webresult',
+    regno: regno,
+    resulttype: 'universityresult',
+    submit: 'Submit'
+  };
+  
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+  
+  toast.success('Results opened in new window!', {
+    title: 'Success',
+    duration: 4000
+  });
+}
+
 // CGPA Calculator Functions
 let rowCount = 1;
 

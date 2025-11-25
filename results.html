@@ -231,12 +231,49 @@
       const loadingIndicator = document.getElementById('loadingIndicator');
       
       if (regno) {
+        let loadTimeout;
+        let isLoaded = false;
+        
         // Listen for iframe load to hide loading indicator
         iframe.addEventListener('load', function() {
+          isLoaded = true;
+          clearTimeout(loadTimeout);
           setTimeout(() => {
             loadingIndicator.style.display = 'none';
             iframe.style.display = 'block';
           }, 500);
+        });
+        
+        // Set timeout for iframe loading (30 seconds)
+        loadTimeout = setTimeout(() => {
+          if (!isLoaded) {
+            loadingIndicator.innerHTML = `
+              <div class="spinner"></div>
+              <p style="color: #ef4444;">Results taking too long to load</p>
+              <p class="loading-subtext">The portal might be slow or blocking iframe access.</p>
+              <button onclick="openInNewWindow()" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                Open Results in New Window
+              </button>
+              <button onclick="window.location.href='index.html'" style="margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                Back to Home
+              </button>
+            `;
+          }
+        }, 30000);
+        
+        // Detect iframe errors
+        iframe.addEventListener('error', function() {
+          clearTimeout(loadTimeout);
+          loadingIndicator.innerHTML = `
+            <p style="color: #ef4444; font-size: 1.1rem; font-weight: 600;">Unable to load results in iframe</p>
+            <p class="loading-subtext">The results portal may be blocking embedded access.</p>
+            <button onclick="openInNewWindow()" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+              Open Results in New Window
+            </button>
+            <button onclick="window.location.href='index.html'" style="margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+              Back to Home
+            </button>
+          `;
         });
         
         // Create and submit form to load results
@@ -269,6 +306,46 @@
         window.location.href = 'index.html';
       }
     });
+    
+    // Open results in new window as fallback
+    function openInNewWindow() {
+      const regno = sessionStorage.getItem('registerNumber');
+      if (!regno) {
+        toast.error('Register number not found. Please try again.');
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Create form and submit to new window
+      const form = document.createElement('form');
+      form.method = 'post';
+      form.action = 'https://www.ksrceresults.com/';
+      form.target = '_blank';
+      form.style.display = 'none';
+      
+      const fields = {
+        webresult: 'Webresult',
+        regno: regno,
+        resulttype: 'universityresult',
+        submit: 'Submit'
+      };
+      
+      for (const [name, value] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+      
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      
+      toast.info('Results opened in new window. You can close this page or go back home.', {
+        duration: 6000
+      });
+    }
     
     // Capture screen functionality
     async function captureScreen() {
