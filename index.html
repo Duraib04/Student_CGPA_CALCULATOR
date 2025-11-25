@@ -52,6 +52,68 @@
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox">
       </iframe>
     </div>
+
+    <div class="cgpa-calculator">
+      <h2>CGPA Calculator</h2>
+      <p class="instructions">Enter your course credits and grades to calculate your CGPA</p>
+      
+      <div class="grade-reference">
+        <strong>Grade Points:</strong> O=10, A+=9, A=8, B+=7, B=6, C=5
+      </div>
+
+      <div class="table-container">
+        <table id="gradesTable">
+          <thead>
+            <tr>
+              <th>S.NO</th>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Credits</th>
+              <th>Grade</th>
+              <th>Grade Point</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="gradesBody">
+            <tr>
+              <td>1</td>
+              <td><input type="text" class="table-input" placeholder="24CST29"></td>
+              <td><input type="text" class="table-input" placeholder="Python Programming"></td>
+              <td><input type="number" class="table-input credit-input" placeholder="3" min="0" step="0.5"></td>
+              <td>
+                <select class="table-input grade-select">
+                  <option value="">Select</option>
+                  <option value="10">O</option>
+                  <option value="9">A+</option>
+                  <option value="8">A</option>
+                  <option value="7">B+</option>
+                  <option value="6">B</option>
+                  <option value="5">C</option>
+                  <option value="0">F</option>
+                </select>
+              </td>
+              <td class="grade-point">-</td>
+              <td><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button type="button" class="add-btn" onclick="addRow()">+ Add Course</button>
+      
+      <div class="cgpa-result">
+        <div class="result-item">
+          <span>Total Credits:</span>
+          <strong id="totalCredits">0</strong>
+        </div>
+        <div class="result-item">
+          <span>CGPA:</span>
+          <strong id="cgpaValue">0.00</strong>
+        </div>
+      </div>
+
+      <button type="button" class="calculate-btn" onclick="calculateCGPA()">Calculate CGPA</button>
+    </div>
   </main>
   
   <script src="script.js"></script>
