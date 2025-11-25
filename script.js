@@ -15,56 +15,16 @@ document.getElementById('resultForm').addEventListener('submit', function(e) {
     existingError.remove();
   }
   
+  // Store register number in sessionStorage
+  sessionStorage.setItem('registerNumber', regno);
+  
   // Show loading state
   const submitBtn = this.querySelector('.submit-btn');
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = 'Opening Results...';
+  submitBtn.textContent = 'Loading Results...';
   submitBtn.disabled = true;
   
-  // Create a form dynamically to open results.html in new tab
-  const resultsForm = document.createElement('form');
-  resultsForm.method = 'post';
-  resultsForm.action = 'https://www.ksrceresults.com/';
-  resultsForm.target = 'resultsFrame';
-  resultsForm.style.display = 'none';
-  
-  // Add form fields
-  const fields = {
-    webresult: 'Webresult',
-    regno: regno,
-    resulttype: 'universityresult',
-    submit: 'Submit'
-  };
-  
-  for (const [name, value] of Object.entries(fields)) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = name;
-    input.value = value;
-    resultsForm.appendChild(input);
-  }
-  
-  document.body.appendChild(resultsForm);
-  
-  // Open results page in new window/tab
-  const resultsWindow = window.open('results.html', 'resultsFrame', 'width=1200,height=800');
-  
-  if (!resultsWindow) {
-    alert('Please allow pop-ups for this site to view your results.');
-    submitBtn.textContent = originalText;
-    submitBtn.disabled = false;
-    document.body.removeChild(resultsForm);
-    return;
-  }
-  
-  // Wait for results window to load, then submit form
-  setTimeout(() => {
-    resultsForm.submit();
-    document.body.removeChild(resultsForm);
-    
-    submitBtn.textContent = originalText;
-    submitBtn.disabled = false;
-  }, 500);
+  // Navigate to results page
+  window.location.href = 'results.html';
 });
 
 // CGPA Calculator Functions

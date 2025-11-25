@@ -146,6 +146,42 @@
   
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
+    // Auto-submit form when page loads
+    window.addEventListener('load', function() {
+      const regno = sessionStorage.getItem('registerNumber');
+      
+      if (regno) {
+        // Create and submit form to load results
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = 'https://www.ksrceresults.com/';
+        form.target = 'resultsFrame';
+        form.style.display = 'none';
+        
+        const fields = {
+          webresult: 'Webresult',
+          regno: regno,
+          resulttype: 'universityresult',
+          submit: 'Submit'
+        };
+        
+        for (const [name, value] of Object.entries(fields)) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+      } else {
+        // No register number, redirect back to home
+        window.location.href = 'index.html';
+      }
+    });
+    
     // Capture screen functionality
     async function captureScreen() {
       const statusDiv = document.getElementById('uploadStatus');
