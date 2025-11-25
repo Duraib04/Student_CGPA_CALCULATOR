@@ -4,21 +4,51 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e0e0e0;
+  --gradient-start: #1e3a8a;
+  --gradient-end: #334155;
+  --accent-primary: #1e40af;
+  --accent-hover: #1e3a8a;
+  --shadow: rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: #475569;
+  --gradient-start: #1e40af;
+  --gradient-end: #1e3a8a;
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
+  --shadow: rgba(0,0,0,0.3);
+}
+
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
 }
 
 header {
-  background: linear-gradient(135deg, #1e3a8a 0%, #334155 100%);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   color: white;
   padding: 2rem 1rem;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px var(--shadow);
+  position: relative;
 }
 
 .header-content h1 {
@@ -43,22 +73,48 @@ main {
   gap: 1.5rem;
 }
 
+/* Theme Toggle */
+.theme-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
 .form-container {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px var(--shadow);
   padding: 2rem;
+  transition: background 0.3s, box-shadow 0.3s;
 }
 
 .form-container h2 {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
+  transition: color 0.3s;
 }
 
 .instructions {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
+  transition: color 0.3s;
 }
 
 .form-group {
@@ -69,21 +125,24 @@ main {
   display: block;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-color);
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #1e3a8a;
+  border-color: var(--accent-primary);
 }
 
 .submit-btn {
@@ -112,13 +171,15 @@ main {
   margin-top: 1rem;
   text-align: center;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s;
 }
 
 .alternative a {
-  color: #1e3a8a;
+  color: var(--accent-primary);
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.3s;
 }
 
 .alternative a:hover {
@@ -142,9 +203,10 @@ main {
 
 .portal-header {
   padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, #1e3a8a 0%, #334155 100%);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   color: white;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--border-color);
+  transition: border-color 0.3s;
 }
 
 .portal-header h2 {
@@ -171,12 +233,13 @@ main {
 .import-section {
   padding: 1rem;
   text-align: center;
-  border-top: 2px solid #e0e0e0;
-  background: #f1f5f9;
+  border-top: 2px solid var(--border-color);
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   align-items: center;
+  transition: all 0.3s;
 }
 
 .import-btn {
@@ -210,20 +273,23 @@ main {
 .import-note {
   margin-top: 0;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
+  transition: color 0.3s;
 }
 
 .cgpa-calculator {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px var(--shadow);
   padding: 2rem;
+  transition: all 0.3s;
 }
 
 .cgpa-calculator h2 {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
+  transition: color 0.3s;
 }
 
 .upload-section {
@@ -231,18 +297,18 @@ main {
 }
 
 .upload-box {
-  border: 2px dashed #3b82f6;
+  border: 2px dashed var(--accent-primary);
   border-radius: 8px;
   padding: 2rem;
   text-align: center;
-  background: #eff6ff;
+  background: var(--bg-primary);
   transition: all 0.3s;
   cursor: pointer;
 }
 
 .upload-box:hover {
-  border-color: #2563eb;
-  background: #dbeafe;
+  border-color: var(--accent-secondary);
+  background: var(--bg-secondary);
 }
 
 .upload-label {
@@ -260,12 +326,14 @@ main {
 .upload-text {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1e40af;
+  color: var(--accent-primary);
+  transition: color 0.3s;
 }
 
 .upload-subtext {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
+  transition: color 0.3s;
 }
 
 .upload-status {
@@ -305,6 +373,11 @@ main {
   border-left: 4px solid #b91c1c;
   border-radius: 6px;
   animation: slideIn 0.3s ease;
+  transition: background 0.3s;
+}
+
+[data-theme="dark"] .error-message {
+  background: rgba(185, 28, 28, 0.2);
 }
 
 .error-message strong {
@@ -314,10 +387,18 @@ main {
   margin-bottom: 0.5rem;
 }
 
+[data-theme="dark"] .error-message strong {
+  color: #fca5a5;
+}
+
 .error-message p {
   color: #7f1d1d;
   margin: 0;
   font-size: 0.95rem;
+}
+
+[data-theme="dark"] .error-message p {
+  color: #fca5a5;
 }
 
 @keyframes slideIn {
@@ -332,12 +413,13 @@ main {
 }
 
 .grade-reference {
-  background: #eff6ff;
+  background: var(--bg-primary);
   padding: 0.75rem;
   border-radius: 6px;
   margin: 1rem 0;
-  color: #1e40af;
+  color: var(--accent-primary);
   font-size: 0.9rem;
+  transition: all 0.3s;
 }
 
 .table-container {
@@ -352,14 +434,15 @@ table {
 }
 
 thead {
-  background: linear-gradient(135deg, #1e3a8a 0%, #334155 100%);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   color: white;
 }
 
 th, td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s;
 }
 
 th {
@@ -368,20 +451,24 @@ th {
 }
 
 tbody tr:hover {
-  background: #f8f9fa;
+  background: var(--bg-primary);
+  transition: background 0.3s;
 }
 
 .table-input {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 0.9rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s;
 }
 
 .table-input:focus {
   outline: none;
-  border-color: #1e3a8a;
+  border-color: var(--accent-primary);
 }
 
 .credit-input {
@@ -394,7 +481,8 @@ tbody tr:hover {
 
 .grade-point {
   font-weight: 600;
-  color: #1e40af;
+  color: var(--accent-primary);
+  transition: color 0.3s;
 }
 
 .remove-btn {
@@ -415,17 +503,18 @@ tbody tr:hover {
 
 .add-btn {
   padding: 0.75rem 1.5rem;
-  background: #1e40af;
+  background: var(--accent-primary);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   margin-bottom: 1.5rem;
+  transition: all 0.3s;
 }
 
 .add-btn:hover {
-  background: #1e3a8a;
+  background: var(--gradient-start);
 }
 
 .cgpa-result {
@@ -433,9 +522,10 @@ tbody tr:hover {
   gap: 2rem;
   justify-content: center;
   padding: 1.5rem;
-  background: #f1f5f9;
+  background: var(--bg-primary);
   border-radius: 6px;
   margin-bottom: 1.5rem;
+  transition: background 0.3s;
 }
 
 .result-item {
@@ -446,19 +536,21 @@ tbody tr:hover {
 }
 
 .result-item span {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
+  transition: color 0.3s;
 }
 
 .result-item strong {
   font-size: 1.5rem;
-  color: #1e3a8a;
+  color: var(--accent-primary);
+  transition: color 0.3s;
 }
 
 .calculate-btn {
   width: 100%;
   padding: 0.875rem;
-  background: linear-gradient(135deg, #1e3a8a 0%, #334155 100%);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   color: white;
   border: none;
   border-radius: 6px;

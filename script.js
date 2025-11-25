@@ -1,5 +1,37 @@
+// Initialize theme on page load
+function initTheme() {
+  // Check localStorage first, then system preference
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  updateThemeIcon(theme);
+}
+
+// Toggle between light and dark themes
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+}
+
+// Update theme toggle icon
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+}
+
 // Clear sessionStorage when page loads (new session)
 window.addEventListener('load', function() {
+  // Initialize theme
+  initTheme();
+  
   // Clear register number from previous session
   sessionStorage.removeItem('registerNumber');
   
@@ -114,15 +146,8 @@ function restoreSession() {
     // Remove prompt
     document.querySelector('.upload-status')?.remove();
     
-    // Show success message
-    const statusDiv = document.getElementById('uploadStatus');
-    statusDiv.className = 'upload-status success';
-    statusDiv.textContent = 'Previous session restored successfully!';
-    statusDiv.style.display = 'block';
-    
-    setTimeout(() => {
-      statusDiv.style.display = 'none';
-    }, 3000);
+    // Show success toast
+    toast.success('Previous session restored successfully!');
   } catch (error) {
     localStorage.removeItem('cgpaCalculatorData');
   }
@@ -491,8 +516,10 @@ async function handleScreenshot(event) {
           // Populate table with extracted data
           populateTable(courses);
           
-          statusDiv.className = 'upload-status success';
-          statusDiv.textContent = `✅ Successfully extracted ${courses.length} courses! Now enter credits for each course.`;
+          toast.success(`Successfully extracted ${courses.length} courses!`, {
+            title: 'OCR Complete',
+            duration: 5000
+          });
           
           // Scroll to table
           setTimeout(() => {
@@ -877,14 +904,9 @@ function resetAllData() {
     // Clear file input
     document.getElementById('screenshotInput').value = '';
     
-    const statusDiv = document.getElementById('uploadStatus');
-    statusDiv.className = 'upload-status success';
-    statusDiv.textContent = 'All data has been reset.';
-    statusDiv.style.display = 'block';
-    
-    setTimeout(() => {
-      statusDiv.style.display = 'none';
-    }, 3000);
+    toast.info('All data has been reset', {
+      title: 'Reset Complete'
+    });
   }
 }
 

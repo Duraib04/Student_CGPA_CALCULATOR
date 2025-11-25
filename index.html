@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>KSRCE Results Portal</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="toast.css">
 </head>
 <body>
   <header>
@@ -12,6 +13,9 @@
       <h1>KSRCE Results Portal</h1>
       <p>Access your examination results</p>
     </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+      <span id="themeIcon">🌙</span>
+    </button>
   </header>
   
   <main>
@@ -123,6 +127,7 @@
       </div>
     </div>
   </main>
+  <script src="toast.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="script.js"></script>
 </body>

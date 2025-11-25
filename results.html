@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Your Results - KSRCE Results Portal</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="toast.css">
   <style>
     .results-page {
       display: flex;
@@ -13,11 +14,12 @@
     }
     
     .results-header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #334155 100%);
+      background: linear-gradient(135deg, var(--gradient-start, #1e3a8a) 0%, var(--gradient-end, #334155) 100%);
       color: white;
       padding: 1.5rem 2rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.1));
       display: flex;
+      position: relative;
       justify-content: space-between;
       align-items: center;
     }
@@ -161,6 +163,9 @@
     <div class="results-header">
       <h1>Your Examination Results</h1>
       <a href="index.html" class="back-btn">← Back to Home</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+        <span id="themeIcon">🌙</span>
+      </button>
     </div>
     
     <div class="results-container">
@@ -188,10 +193,39 @@
   
   <canvas id="previewCanvas" style="display: none;"></canvas>
   
+  <script src="toast.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
+    // Initialize theme functions (shared with index.html)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      updateThemeIcon(theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      }
+    }
+
     // Auto-submit form when page loads
     window.addEventListener('load', function() {
+      // Initialize theme
+      initTheme();
       const regno = sessionStorage.getItem('registerNumber');
       const iframe = document.getElementById('resultsFrame');
       const loadingIndicator = document.getElementById('loadingIndicator');
