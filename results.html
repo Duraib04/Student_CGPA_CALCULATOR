@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Your Results - KSRCE Results Portal</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .results-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    .results-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #334155 100%);
+      color: white;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .results-header h1 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+    
+    .back-btn {
+      padding: 0.625rem 1.25rem;
+      background: white;
+      color: #1e3a8a;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+    
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+    }
+    
+    .results-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      overflow: hidden;
+    }
+    
+    #resultsFrame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: white;
+    }
+    
+    .action-bar {
+      padding: 1rem 2rem;
+      background: #f1f5f9;
+      border-top: 2px solid #e0e0e0;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    
+    .action-btn {
+      padding: 0.75rem 1.5rem;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .action-btn:hover {
+      background: #0d5f58;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+    
+    #uploadStatus {
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    
+    #uploadStatus.processing {
+      display: block;
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    
+    #uploadStatus.success {
+      display: block;
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    #uploadStatus.error {
+      display: block;
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="results-page">
+    <div class="results-header">
+      <h1>📄 Your Examination Results</h1>
+      <a href="index.html" class="back-btn">← Back to Home</a>
+    </div>
+    
+    <div class="results-container">
+      <iframe 
+        id="resultsFrame" 
+        name="resultsFrame"
+        title="KSRCE Results"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox">
+      </iframe>
+    </div>
+    
+    <div class="action-bar">
+      <button type="button" class="action-btn" onclick="captureScreen()">
+        Capture Screen
+      </button>
+      <div id="uploadStatus"></div>
+    </div>
+  </div>
+  
+  <canvas id="previewCanvas" style="display: none;"></canvas>
+  
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    // Capture screen functionality
+    async function captureScreen() {
+      const statusDiv = document.getElementById('uploadStatus');
+      statusDiv.className = 'upload-status processing';
+      statusDiv.textContent = 'Preparing screen capture...';
+      
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            displaySurface: 'browser',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false,
+          preferCurrentTab: true
+        });
+        
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+        
+        await new Promise(resolve => {
+          video.onloadedmetadata = () => {
+            video.onloadedmetadata = null;
+            resolve();
+          };
+        });
+        
+        const canvas = document.getElementById('previewCanvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        stream.getTracks().forEach(track => track.stop());
+        
+        statusDiv.className = 'upload-status processing';
+        statusDiv.textContent = 'Processing image with OCR...';
+        
+        canvas.toBlob(async blob => {
+          try {
+            const result = await Tesseract.recognize(blob, 'eng', {
+              logger: m => {
+                if (m.status === 'recognizing text') {
+                  statusDiv.textContent = `Processing: ${Math.round(m.progress * 100)}%`;
+                }
+              }
+            });
+            
+            const text = result.data.text;
+            console.log('Extracted text:', text);
+            
+            // Store the data and redirect to home with results
+            sessionStorage.setItem('ocrResults', text);
+            
+            statusDiv.className = 'upload-status success';
+            statusDiv.textContent = 'Results captured! Redirecting to calculator...';
+            
+            setTimeout(() => {
+              window.location.href = 'index.html?fromResults=true';
+            }, 1500);
+            
+          } catch (error) {
+            console.error('OCR error:', error);
+            statusDiv.className = 'upload-status error';
+            statusDiv.textContent = 'Error processing image. Please try again.';
+            
+            setTimeout(() => {
+              statusDiv.className = 'upload-status';
+              statusDiv.textContent = '';
+            }, 4000);
+          }
+        }, 'image/png');
+        
+      } catch (error) {
+        console.error('Screen capture error:', error);
+        statusDiv.className = 'upload-status error';
+        
+        if (error.name === 'NotAllowedError') {
+          statusDiv.textContent = 'Screen capture was cancelled. Please try again.';
+        } else {
+          statusDiv.textContent = 'Unable to capture screen. Please check your browser permissions.';
+        }
+        
+        setTimeout(() => {
+          statusDiv.className = 'upload-status';
+          statusDiv.textContent = '';
+        }, 4000);
+      }
+    }
+  </script>
+</body>
+</html>

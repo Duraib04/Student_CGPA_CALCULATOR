@@ -1,9 +1,10 @@
 // Handle form submission
 document.getElementById('resultForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
   const regno = document.getElementById('regno').value.trim();
   
   if (!regno) {
-    e.preventDefault();
     alert('Please enter your Register Number');
     return;
   }
@@ -14,18 +15,56 @@ document.getElementById('resultForm').addEventListener('submit', function(e) {
     existingError.remove();
   }
   
-  // Form will submit to new tab automatically (target="_blank")
-  // Show brief loading state
+  // Show loading state
   const submitBtn = this.querySelector('.submit-btn');
   const originalText = submitBtn.textContent;
   submitBtn.textContent = 'Opening Results...';
   submitBtn.disabled = true;
   
-  // Re-enable button after brief delay
-  setTimeout(() => {
+  // Create a form dynamically to open results.html in new tab
+  const resultsForm = document.createElement('form');
+  resultsForm.method = 'post';
+  resultsForm.action = 'https://www.ksrceresults.com/';
+  resultsForm.target = 'resultsFrame';
+  resultsForm.style.display = 'none';
+  
+  // Add form fields
+  const fields = {
+    webresult: 'Webresult',
+    regno: regno,
+    resulttype: 'universityresult',
+    submit: 'Submit'
+  };
+  
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    resultsForm.appendChild(input);
+  }
+  
+  document.body.appendChild(resultsForm);
+  
+  // Open results page in new window/tab
+  const resultsWindow = window.open('results.html', 'resultsFrame', 'width=1200,height=800');
+  
+  if (!resultsWindow) {
+    alert('Please allow pop-ups for this site to view your results.');
     submitBtn.textContent = originalText;
     submitBtn.disabled = false;
-  }, 1500);
+    document.body.removeChild(resultsForm);
+    return;
+  }
+  
+  // Wait for results window to load, then submit form
+  setTimeout(() => {
+    resultsForm.submit();
+    document.body.removeChild(resultsForm);
+    
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  }, 500);
 });
 
 // CGPA Calculator Functions
