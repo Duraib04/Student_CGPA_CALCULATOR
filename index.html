@@ -15,18 +15,45 @@
   </header>
   
   <main>
+    <div class="form-container">
+      <h2>Check Your Results</h2>
+      <p class="instructions">Enter your Register Number to view your examination results</p>
+      
+      <form id="resultForm" method="post" action="https://www.ksrceresults.com/" target="resultsFrame">
+        <input type="hidden" name="webresult" value="Webresult">
+        
+        <div class="form-group">
+          <label for="regno">Register Number</label>
+          <input 
+            type="text" 
+            id="regno" 
+            name="regno" 
+            class="form-input" 
+            placeholder="Enter your Register Number" 
+            required>
+        </div>
+        
+        <input type="hidden" name="resulttype" value="universityresult">
+        <input type="hidden" name="submit" value="Submit">
+        
+        <button type="submit" class="submit-btn">View Results</button>
+      </form>
+      
+      <div class="alternative">
+        <p>Or <a href="https://www.ksrceresults.com/" target="_blank" rel="noopener noreferrer">visit KSRCE portal directly</a></p>
+      </div>
+    </div>
+    
     <div class="portal-container">
       <iframe 
         id="resultsFrame" 
-        src="https://www.ksrceresults.com/" 
-        title="KSRCE Results Portal"
-        allowfullscreen>
+        name="resultsFrame"
+        title="KSRCE Results"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox">
       </iframe>
     </div>
-    
-    <div class="fallback">
-      <p>If the portal doesn't load above, <a href="https://www.ksrceresults.com/" target="_blank" rel="noopener noreferrer">click here to open it in a new tab</a>.</p>
-    </div>
   </main>
+  
+  <script src="script.js"></script>
 </body>
 </html>
