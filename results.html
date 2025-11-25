@@ -116,6 +116,44 @@
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
+    
+    .loading-indicator {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      background: white;
+      padding: 2rem;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #1e3a8a;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1.5rem;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-indicator p {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e3a8a;
+      margin: 0.5rem 0;
+    }
+    
+    .loading-subtext {
+      font-size: 0.95rem !important;
+      font-weight: 400 !important;
+      color: #64748b !important;
+    }
   </style>
 </head>
 <body>
@@ -126,11 +164,17 @@
     </div>
     
     <div class="results-container">
+      <div id="loadingIndicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <p>Loading your results...</p>
+        <p class="loading-subtext">Please wait while we fetch your examination results</p>
+      </div>
       <iframe 
         id="resultsFrame" 
         name="resultsFrame"
         title="KSRCE Results"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox">
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+        style="display: none;">
       </iframe>
     </div>
     
@@ -149,8 +193,18 @@
     // Auto-submit form when page loads
     window.addEventListener('load', function() {
       const regno = sessionStorage.getItem('registerNumber');
+      const iframe = document.getElementById('resultsFrame');
+      const loadingIndicator = document.getElementById('loadingIndicator');
       
       if (regno) {
+        // Listen for iframe load to hide loading indicator
+        iframe.addEventListener('load', function() {
+          setTimeout(() => {
+            loadingIndicator.style.display = 'none';
+            iframe.style.display = 'block';
+          }, 500);
+        });
+        
         // Create and submit form to load results
         const form = document.createElement('form');
         form.method = 'post';
