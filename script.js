@@ -671,3 +671,45 @@ function resetAllData() {
     alert('All data has been reset.');
   }
 }
+
+// Print portal result
+function printPortal() {
+  const iframe = document.getElementById('resultsFrame');
+  
+  if (!iframe.src || iframe.src === 'about:blank') {
+    alert('Please load your results in the portal first by entering your Register Number above.');
+    return;
+  }
+
+  try {
+    // Try to access iframe content and trigger print
+    const iframeWindow = iframe.contentWindow;
+    
+    if (iframeWindow) {
+      iframeWindow.focus();
+      iframeWindow.print();
+    } else {
+      // Fallback: open portal in new window and print
+      const newWindow = window.open(iframe.src, '_blank');
+      if (newWindow) {
+        newWindow.onload = function() {
+          setTimeout(() => {
+            newWindow.print();
+          }, 1000);
+        };
+      } else {
+        alert('Please allow pop-ups to print the portal result, or visit the portal directly and use its print button.');
+      }
+    }
+  } catch (error) {
+    console.error('Print portal error:', error);
+    
+    // If direct access fails, suggest alternatives
+    const portalUrl = 'https://www.ksrceresults.com/';
+    const message = `Unable to print directly due to security restrictions.\n\nOptions:\n1. Click OK to open the portal in a new tab and use its print button\n2. Use "📸 Capture Screen" then "🖨️ Print Results with CGPA"`;
+    
+    if (confirm(message)) {
+      window.open(portalUrl, '_blank');
+    }
+  }
+}
