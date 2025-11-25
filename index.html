@@ -61,10 +61,7 @@
         <button type="button" class="import-btn" onclick="captureScreen()">
           Capture Screen
         </button>
-        <button type="button" class="import-btn portal-print-btn" onclick="printPortal()">
-          Print Portal Result
-        </button>
-        <p class="import-note">Capture screen or print the result shown above</p>
+        <p class="import-note">Capture the result shown above</p>
       </div>
     </div>
 
@@ -84,11 +81,9 @@
         <div id="uploadStatus" class="upload-status"></div>
         <canvas id="previewCanvas" style="display: none;"></canvas>
       </div>
-      
       <div class="grade-reference">
         <strong>Grade Points:</strong> O=10, A+=9, A=8, B+=7, B=6, C=5
       </div>
-
       <div class="table-container">
         <table id="gradesTable">
           <thead>
@@ -126,9 +121,7 @@
           </tbody>
         </table>
       </div>
-
       <button type="button" class="add-btn" onclick="addRow()">+ Add Course</button>
-      
       <div class="cgpa-result">
         <div class="result-item">
           <span>Total Credits:</span>
@@ -139,9 +132,7 @@
           <strong id="cgpaValue">0.00</strong>
         </div>
       </div>
-
       <button type="button" class="calculate-btn" onclick="calculateCGPA()">Calculate CGPA</button>
-      
       <div class="action-buttons">
         <button type="button" class="print-btn" onclick="printResults()">
           Print Results with CGPA
@@ -152,7 +143,6 @@
       </div>
     </div>
   </main>
-  
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="script.js"></script>
 </body>
