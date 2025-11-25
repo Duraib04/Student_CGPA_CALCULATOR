@@ -188,10 +188,12 @@ function sanitizeInput(input) {
 
 // Validate KSRCE register number format
 function validateRegisterNumber(regno) {
-  // KSRCE format: typically starts with 2 digits (year) followed by alphanumeric
-  // Examples: 21CSR001, 22EEE123, 21MEC045
-  const pattern = /^[0-9]{2}[A-Z]{3}[0-9]{3,4}$/i;
-  return pattern.test(regno);
+  // KSRCE formats:
+  // 1. Alphanumeric: 21CSR001, 22EEE123, 21MEC045 (2 digits + 3 letters + 3-4 digits)
+  // 2. Numeric: 73152419005 (11 digits)
+  const alphanumericPattern = /^[0-9]{2}[A-Z]{3}[0-9]{3,4}$/i;
+  const numericPattern = /^[0-9]{11}$/;
+  return alphanumericPattern.test(regno) || numericPattern.test(regno);
 }
 
 // Handle form submission
@@ -208,7 +210,7 @@ document.getElementById('resultForm').addEventListener('submit', function(e) {
   
   // Validate register number format
   if (!validateRegisterNumber(regno)) {
-    showError('Invalid register number format. Expected format: 21CSR001 (2 digits + 3 letters + 3-4 digits)', formContainer);
+    showError('Invalid register number format. Expected formats: 21CSR001 or 73152419005', formContainer);
     return;
   }
   
