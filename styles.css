@@ -48,6 +48,49 @@ body {
   overflow-x: hidden;
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.15) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: meshGradient 15s ease infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] body::before {
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: meshGradient 15s ease infinite;
+}
+
+@keyframes meshGradient {
+  0%, 100% {
+    background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%;
+  }
+  25% {
+    background-position: 100% 0%, 0% 50%, 100% 100%, 0% 50%;
+  }
+  50% {
+    background-position: 100% 100%, 0% 100%, 100% 0%, 0% 0%;
+  }
+  75% {
+    background-position: 0% 100%, 100% 50%, 0% 0%, 100% 50%;
+  }
+}
+
 /* Animated background effect */
 body::before {
   content: '';
@@ -164,36 +207,72 @@ main {
 }
 
 .form-container {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px var(--shadow);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.5);
   padding: 2rem;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .form-container {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .form-container::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  padding: 2px;
-  background: linear-gradient(135deg, var(--accent-primary), var(--gradient-start));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
+  inset: -100%;
+  background: conic-gradient(from 0deg at 50% 50%, 
+    transparent 0deg, 
+    rgba(30, 64, 175, 0.3) 45deg, 
+    transparent 90deg,
+    transparent 270deg,
+    rgba(30, 64, 175, 0.3) 315deg,
+    transparent 360deg);
+  animation: rotate 4s linear infinite;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.6s ease;
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+
+.form-container::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(30, 64, 175, 0.05) 0%, transparent 70%);
+  animation: pulse-glow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
 }
 
 .form-container:hover::before {
-  opacity: 0.4;
+  opacity: 1;
 }
 
 .form-container:hover {
-  box-shadow: 0 8px 24px var(--shadow);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(30, 64, 175, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-4px);
+  border-color: rgba(30, 64, 175, 0.4);
 }
 
 .form-container h2 {
@@ -397,11 +476,30 @@ main {
 }
 
 .cgpa-calculator {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px var(--shadow);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.5);
   padding: 2rem;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .cgpa-calculator {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.cgpa-calculator:hover {
+  box-shadow: 0 12px 40px rgba(30, 64, 175, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 .cgpa-calculator h2 {
@@ -416,18 +514,50 @@ main {
 }
 
 .upload-box {
-  border: 2px dashed var(--accent-primary);
-  border-radius: 8px;
+  border: 2px dashed rgba(30, 64, 175, 0.4);
+  border-radius: 12px;
   padding: 2rem;
   text-align: center;
-  background: var(--bg-primary);
-  transition: all 0.3s;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .upload-box {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.upload-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(30, 64, 175, 0.1) 0%, 
+    transparent 50%, 
+    rgba(30, 64, 175, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.upload-box:hover::before {
+  opacity: 1;
 }
 
 .upload-box:hover {
-  border-color: var(--accent-secondary);
-  background: var(--bg-secondary);
+  border-color: rgba(30, 64, 175, 0.8);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.2);
+  transform: scale(1.02);
+}
+
+[data-theme="dark"] .upload-box:hover {
+  background: rgba(51, 65, 85, 0.8);
+  border-color: rgba(59, 130, 246, 0.8);
 }
 
 .upload-label {
@@ -572,13 +702,47 @@ main {
 }
 
 .grade-reference {
-  background: var(--bg-primary);
-  padding: 0.75rem;
-  border-radius: 6px;
+  background: linear-gradient(135deg, 
+    rgba(30, 64, 175, 0.1) 0%, 
+    rgba(30, 58, 138, 0.1) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   margin: 1rem 0;
   color: var(--accent-primary);
   font-size: 0.9rem;
-  transition: all 0.3s;
+  font-weight: 500;
+  border: 1px solid rgba(30, 64, 175, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.grade-reference::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  100% { left: 100%; }
+}
+
+.grade-reference:hover {
+  background: linear-gradient(135deg, 
+    rgba(30, 64, 175, 0.15) 0%, 
+    rgba(30, 58, 138, 0.15) 100%);
+  border-color: rgba(30, 64, 175, 0.4);
+  transform: translateX(4px);
 }
 
 .table-container {
@@ -680,11 +844,47 @@ tbody tr:hover {
   display: flex;
   gap: 2rem;
   justify-content: center;
-  padding: 1.5rem;
-  background: var(--bg-primary);
-  border-radius: 6px;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
   margin-bottom: 1.5rem;
-  transition: background 0.3s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .cgpa-result {
+  background: rgba(51, 65, 85, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.cgpa-result::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(30, 64, 175, 0.1) 0%, transparent 60%);
+  animation: pulse-result 4s ease-in-out infinite;
+}
+
+@keyframes pulse-result {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+}
+
+.cgpa-result:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .result-item {
@@ -700,10 +900,23 @@ tbody tr:hover {
   transition: color 0.3s;
 }
 
+.result-item {
+  position: relative;
+  z-index: 1;
+}
+
 .result-item strong {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: var(--accent-primary);
-  transition: color 0.3s;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.result-item strong:hover {
+  transform: scale(1.1);
+  text-shadow: 0 4px 16px rgba(30, 64, 175, 0.5);
 }
 
 .calculate-btn {
@@ -716,9 +929,14 @@ tbody tr:hover {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.4);
+}
+
+.calculate-btn.magnetic {
+  will-change: transform;
 }
 
 .calculate-btn::after {

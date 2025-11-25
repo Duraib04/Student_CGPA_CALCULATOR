@@ -536,8 +536,33 @@ function calculateCGPA() {
 
   const cgpa = totalGradePoints / totalCredits;
   
-  document.getElementById('totalCredits').textContent = totalCredits.toFixed(1);
-  document.getElementById('cgpaValue').textContent = cgpa.toFixed(2);
+  // Animate the values
+  animateValue('totalCredits', 0, totalCredits, 600);
+  animateValue('cgpaValue', 0, cgpa, 800);
+  
+  // Trigger particle explosion
+  if (typeof particleSystem !== 'undefined') {
+    const resultElement = document.querySelector('.cgpa-result');
+    if (resultElement) {
+      const position = getElementCenter(resultElement);
+      
+      // Choose colors based on CGPA
+      let colors;
+      if (cgpa >= 9.0) {
+        colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0']; // Green spectrum for excellent
+        // Add confetti for outstanding performance
+        setTimeout(() => particleSystem.confetti(2000), 300);
+      } else if (cgpa >= 8.0) {
+        colors = ['#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe']; // Blue spectrum for very good
+      } else if (cgpa >= 7.0) {
+        colors = ['#f59e0b', '#fbbf24', '#fcd34d', '#fde68a']; // Orange spectrum for good
+      } else {
+        colors = ['#ef4444', '#f87171', '#fca5a5', '#fecaca']; // Red spectrum for needs improvement
+      }
+      
+      particleSystem.explode(position.x, position.y, 80, colors);
+    }
+  }
 }
 
 // Convert grade letter to grade point
@@ -1217,4 +1242,64 @@ async function printPortal() {
       statusDiv.textContent = '';
     }, 5000);
   }
+}
+
+// Magnetic Button Effect
+class MagneticButton {
+  constructor(element, strength = 0.3) {
+    this.element = element;
+    this.strength = strength;
+    this.rect = null;
+    
+    this.element.classList.add('magnetic');
+    this.element.addEventListener('mouseenter', () => this.activate());
+    this.element.addEventListener('mouseleave', () => this.deactivate());
+    this.element.addEventListener('mousemove', (e) => this.onMouseMove(e));
+  }
+  
+  activate() {
+    this.rect = this.element.getBoundingClientRect();
+  }
+  
+  deactivate() {
+    this.element.style.transform = '';
+  }
+  
+  onMouseMove(e) {
+    if (!this.rect) return;
+    
+    const centerX = this.rect.left + this.rect.width / 2;
+    const centerY = this.rect.top + this.rect.height / 2;
+    
+    const deltaX = (e.clientX - centerX) * this.strength;
+    const deltaY = (e.clientY - centerY) * this.strength;
+    
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const maxDistance = this.rect.width / 2;
+    
+    if (distance < maxDistance) {
+      this.element.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.05)`;
+      this.element.style.boxShadow = `0 ${8 + distance / 5}px ${30 + distance / 2}px rgba(30, 64, 175, ${0.4 + distance / maxDistance * 0.2})`;
+    }
+  }
+}
+
+// Initialize magnetic buttons
+function initMagneticButtons() {
+  const calculateBtn = document.querySelector('.calculate-btn');
+  if (calculateBtn) {
+    new MagneticButton(calculateBtn, 0.25);
+  }
+  
+  const actionButtons = document.querySelectorAll('.print-btn, .reset-btn-main');
+  actionButtons.forEach(btn => {
+    new MagneticButton(btn, 0.2);
+  });
+}
+
+// Initialize on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMagneticButtons);
+} else {
+  initMagneticButtons();
 }
